@@ -1,0 +1,37 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+' skinparam wrapWidth 300
+LAYOUT_WITH_LEGEND()
+LAYOUT_LANDSCAPE()
+
+title
+ <i>C4 Container diagram for a Social Network Service</i>
+end title
+
+Person(user, "User")
+
+System_Boundary(message_processing_system, "Social Network") {
+    Container(main, "Main service", "Docker, Go", "Authentication & Login service that handles all users' requests")
+    Container(posts, "Posts & comments service", "Docker, Go", "Handles posts & comments creations, deletions and edits initiated by users' requests")
+    Container(statistics, "Statistics service", "Docker, Go", "Aggregates & saves statistics for likes and views on users' posts")
+    
+    ContainerDb(main_db, "Users data", "PostgreSQL", "")
+    ContainerDb(posts_db, "Posts & comments data", "PostgreSQL", "")
+    ContainerDb(stat_db, "Statistics data", "Clickhouse", "")
+    
+    SystemQueue(response_queue, "RabbitMQ", "")
+
+    Rel(posts, posts_db, "Reads & writes", "")
+    Rel_U(main, main_db, "Reads & writes", "")
+    Rel(statistics, stat_db, "Reads & writes", "")
+
+    Rel(statistics, response_queue, "Produces", "RabbitMQ")
+    Rel(response_queue, main, "Consumes", "RabbitMQ")
+
+    Rel(user, main, "Requests", "REST API")
+    Rel(main, posts, "?", "gRPC")
+    Rel(main, statistics, "?", "gRPC")
+}
+
+@enduml
