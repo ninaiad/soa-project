@@ -5,7 +5,7 @@
 LAYOUT_WITH_LEGEND()
 LAYOUT_LANDSCAPE()
 
-title Context Diagramfor a Social Network System
+title Context Diagram for a Social Network System
 
 Person(user, "User", "")
 System(system, "Social Network System", "Allows users to create an account, write posts, view posts & statistics, leave comments.")

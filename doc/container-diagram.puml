@@ -15,6 +15,7 @@ LAYOUT_LANDSCAPE()
 title Container Diagram for a Social Network System
 
 Person(user, "User")
+Container(frontend, "Frontend")
 
 System_Boundary(message_processing_system, "Social Network") {
     Container(main, "Main service", "Docker, Go", "Authentication & Login service that handles all users' requests", "go")
@@ -34,9 +35,11 @@ System_Boundary(message_processing_system, "Social Network") {
     Rel(statistics, response_queue, "Produces", "Apache Kafka")
     Rel(response_queue, main, "Consumes", "Apache Kafka")
 
-    Rel(user, main, "Requests", "REST API")
+    Rel(frontend, main, "Requests", "REST API")
     Rel(main, posts, "Works with posts & comments", "gRPC")
     Rel(main, statistics, "Works with statistics data", "gRPC")
 }
+
+Rel(user, frontend, "Requests")
 
 @enduml
