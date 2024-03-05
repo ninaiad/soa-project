@@ -4,6 +4,10 @@ skinparam linetype ortho
 
 entity "User" as e01 {
   *user_id : unique number
+  *login : string
+  *password : string
+  *time_created : number
+  *time_updated : number
   --
   *name : text
 }
@@ -16,6 +20,7 @@ entity "Views" as e06 {
 
 entity "Post" as e03 {
   *post_id : unique number
+  *text : string
   --
   *author_id : number
   *time_created : number
@@ -23,6 +28,7 @@ entity "Post" as e03 {
 
 entity "Comment" as e05 {
   *comment_id : unique number
+  *text : string
   --
   *author_id : number
   *post_id : number
