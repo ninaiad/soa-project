@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+  server:
+    build: ./
+    command: ./wait-for-postgres.sh postgres-db ./main
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres-db
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      PASSWORD_SALT: ${PASSWORD_SALT}
+      TOKEN_SIGNING_KEY: ${TOKEN_SIGNING_KEY}
+    restart: on-failure
+
+  postgres-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./.database/postgres/data:/var/lib/postgresql/data:rw
+    user: 501:20
+    ports:
+      - 5432:5432
+    restart: always
