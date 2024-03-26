@@ -1,0 +1,45 @@
+@startuml
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!includeurl <cloudinsight/kafka>
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v2.4.0
+!includeurl ICONURL/common.puml
+!includeurl ICONURL/devicons/go.puml
+!includeurl ICONURL/devicons2/postgresql.puml
+
+LAYOUT_WITH_LEGEND()
+LAYOUT_LANDSCAPE()
+
+title Container Diagram for a Social Network System
+
+Person(user, "User")
+Container(frontend, "Frontend")
+
+System_Boundary(message_processing_system, "Social Network") {
+    Container(main, "Main service", "Docker, Go", "Authentication & Login service that handles all users' requests", "go")
+    Container(posts, "Posts & comments service", "Docker, Go", "Handles posts & comments creations, deletions and edits initiated by users' requests", "go")
+    Container(statistics, "Statistics service", "Docker, Go", "Aggregates & saves statistics for likes and views on users' posts", "go")
+    
+    ContainerDb(main_db, "Users data", "PostgreSQL", "", "postgresql")
+    ContainerDb(posts_db, "Posts & comments data", "PostgreSQL", "", "postgresql")
+    ContainerDb(stat_db, "Statistics data", "Clickhouse", "")
+    
+    SystemQueue(response_queue, "Apache Kafka", "", "kafka")
+
+    Rel(posts, posts_db, "Reads & writes", "")
+    Rel_U(main, main_db, "Reads & writes", "")
+    Rel(statistics, stat_db, "Reads & writes", "")
+
+    Rel(statistics, response_queue, "Produces", "Apache Kafka")
+    Rel(response_queue, main, "Consumes", "Apache Kafka")
+
+    Rel(frontend, main, "Requests", "REST API")
+    Rel(main, posts, "Works with posts & comments", "gRPC")
+    Rel(main, statistics, "Works with statistics data", "gRPC")
+}
+
+Rel(user, frontend, "Requests")
+
+@enduml
