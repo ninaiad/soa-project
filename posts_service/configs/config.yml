@@ -1,0 +1,8 @@
+port: "8001"
+
+db:
+    username: "postgres"
+    host: "host.docker.internal"
+    port: "5433"
+    dbname: "postgres"
+    sslmode: "disable"
