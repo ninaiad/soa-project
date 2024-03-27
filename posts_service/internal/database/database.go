@@ -19,6 +19,5 @@ type Database struct {
 }
 
 func NewDatabase(db *sqlx.DB) *Database {
-	return &Database {PostsDatabase: NewPostsPostgres(db)}
+	return &Database{PostsDatabase: NewPostsPostgres(db)}
 }
-

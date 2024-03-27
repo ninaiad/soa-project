@@ -56,4 +56,4 @@ func (p *PostsService) GetPageOfPosts(_ context.Context, req *pb.GetPageOfPostsR
 	}
 
 	return &pb.GetPageOfPostsResponse{PageNum: req.PageNum, PageSize: int32(len(*posts)), Posts: pbPosts}, nil
-}	
+}

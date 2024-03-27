@@ -1,11 +1,12 @@
 package main
-import (
-	"os"
-	"net"
-	"log"
 
-	"soa/posts_service/internal/posts"
+import (
+	"log"
+	"net"
+	"os"
+
 	pb "soa/posts"
+	"soa/posts_service/internal/posts"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection" // to be able to connect via grpcurl
@@ -16,7 +17,7 @@ func main() {
 	addr := "0.0.0.0:"
 	port := os.Getenv("POSTS_SERVER_PORT")
 	if port == "" {
-		addr = "0.0.0.0:51075"
+		addr = "0.0.0.0:51705"
 		log.Printf("Missing POSTS_SERVER_PORT, using default value: 51075")
 	} else {
 		addr += port
