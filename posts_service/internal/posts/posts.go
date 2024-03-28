@@ -2,11 +2,13 @@ package posts
 
 import (
 	"context"
+	"time"
 
 	pb "soa/posts"
 	"soa/posts_service/internal/database"
 
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type PostsService struct {
@@ -14,8 +16,8 @@ type PostsService struct {
 	db database.PostsDatabase
 }
 
-func NewPostsService() *PostsService {
-	return &PostsService{}
+func NewPostsService(db *database.Database) *PostsService {
+	return &PostsService{db: db}
 }
 
 func (p *PostsService) CreatePost(_ context.Context, req *pb.CreateRequest) (*pb.CreateResponse, error) {
@@ -41,7 +43,8 @@ func (p *PostsService) GetPost(_ context.Context, req *pb.PostIdRequest) (*pb.Po
 		return nil, err
 	}
 
-	return &pb.Post{Text: post.Txt, TimeUpdated: &post.TimeUpdated}, nil
+	t, err := time.Parse(time.RFC3339, post.TimeUpdated)
+	return &pb.Post{Text: post.Txt, TimeUpdated: timestamppb.New(t)}, err
 }
 
 func (p *PostsService) GetPageOfPosts(_ context.Context, req *pb.GetPageOfPostsRequest) (*pb.GetPageOfPostsResponse, error) {
@@ -52,7 +55,12 @@ func (p *PostsService) GetPageOfPosts(_ context.Context, req *pb.GetPageOfPostsR
 
 	pbPosts := make([]*pb.Post, len(*posts))
 	for i := range *posts {
-		pbPosts = append(pbPosts, &pb.Post{Text: (*posts)[i].Txt, TimeUpdated: &(*posts)[i].TimeUpdated})
+		t, err := time.Parse(time.RFC3339, (*posts)[i].TimeUpdated)
+		if err != nil {
+			return nil, err
+		}
+
+		pbPosts[i] = &pb.Post{Text: (*posts)[i].Txt, TimeUpdated: timestamppb.New(t)}
 	}
 
 	return &pb.GetPageOfPostsResponse{PageNum: req.PageNum, PageSize: int32(len(*posts)), Posts: pbPosts}, nil

@@ -43,23 +43,14 @@ func main() {
 	}
 
 	// initialise grpc client
-	serverAddr := "0.0.0.0:"
-	port := os.Getenv("POSTS_SERVER_PORT")
-	if port == "" {
-		serverAddr = "0.0.0.0:51075"
-		log.Printf("Missing POSTS_SERVER_PORT, using default value: 51075")
-	} else {
-		serverAddr += port
-	}
-
-	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	postsC, err := grpc.Dial(os.Getenv("POSTS_SERVER_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer conn.Close()
+	defer postsC.Close()
 
 	repos := database.NewDatabase(db)
-	services := service.NewService(repos, conn)
+	services := service.NewService(repos, postsC)
 	handlers := handler.NewHandler(services)
 
 	srv := new(main_service.Server)
@@ -83,7 +74,7 @@ func main() {
 }
 
 func initConfig() error {
-	viper.AddConfigPath("configs")
+	viper.AddConfigPath("./main_service/configs")
 	viper.SetConfigName("config")
 	return viper.ReadInConfig()
 }

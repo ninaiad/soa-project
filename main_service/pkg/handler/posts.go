@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"soa/posts"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -54,6 +55,7 @@ func (h *Handler) createPost(c *gin.Context) {
 	postId, err := h.services.PostsServerClient.CreatePost(context.Background(), &posts.CreateRequest{AuthorId: int32(userId), Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	log.Println("successful createPost request")
@@ -76,6 +78,7 @@ func (h *Handler) updatePost(c *gin.Context) {
 	_, err = h.services.PostsServerClient.UpdatePost(context.Background(), &posts.UpdateRequest{AuthorId: int32(userId), PostId: int32(input.PostId), Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	log.Println("successful updatePost request")
@@ -98,6 +101,7 @@ func (h *Handler) deletePost(c *gin.Context) {
 	_, err = h.services.PostsServerClient.DeletePost(context.Background(), &posts.PostIdRequest{AuthorId: int32(userId), PostId: int32(input.PostId)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	log.Println("successful deletePost request")
@@ -120,10 +124,11 @@ func (h *Handler) getPost(c *gin.Context) {
 	post, err := h.services.PostsServerClient.GetPost(context.Background(), &posts.PostIdRequest{AuthorId: int32(userId), PostId: int32(input.PostId)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	log.Println("successful getPost request")
-	c.JSON(http.StatusOK, postResponse{Text: post.Text, TimeUpdated: post.TimeUpdated.String()})
+	c.JSON(http.StatusOK, postResponse{Text: post.Text, TimeUpdated: post.TimeUpdated.AsTime().Format(time.RFC3339)})
 }
 
 func (h *Handler) getPageOfPosts(c *gin.Context) {
@@ -142,11 +147,12 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 	posts, err := h.services.PostsServerClient.GetPageOfPosts(context.Background(), &posts.GetPageOfPostsRequest{AuthorId: int32(userId), PageNum: int32(input.PageNum), PageSize: int32(input.PageSize)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	postsData := make([]postResponse, posts.PageSize)
 	for i := range (*posts).Posts {
-		postsData = append(postsData, postResponse{Text: (*posts).Posts[i].Text, TimeUpdated: (*posts).Posts[i].TimeUpdated.String()})
+		postsData[i] = postResponse{Text: (*posts).Posts[i].Text, TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339)}
 	}
 
 	log.Println("successful getPostsbyPage request")
