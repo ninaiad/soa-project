@@ -3,11 +3,12 @@ version: "3"
 services:
   server:
     build: ./
-    command: ./wait-for-postgres.sh postgres-db ./main
+    command: ./main
     ports:
       - 8000:8000
     depends_on:
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
     environment:
       DB_PASSWORD: ${DB_PASSWORD}
       PASSWORD_SALT: ${PASSWORD_SALT}
@@ -26,3 +27,8 @@ services:
     ports:
       - 5432:5432
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$DB_PASSWORD", "psql", "-h", "postgres-db", "-U", "postgres", "-c", "'\\q'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
