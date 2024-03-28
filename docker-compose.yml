@@ -5,12 +5,14 @@ services:
     build:
       context: .
       dockerfile: main_service.dockerfile
-    command: ./wait-for-postgres.sh main-db ./main
+    command: ./main
     ports:
       - 8000:8000
     depends_on:
-      - main-db
-      - posts
+      main-db:
+        condition: service_healthy
+      posts:
+        condition: service_started
     environment:
       DB_PASSWORD: ${MAIN_DB_PASSWORD}
       PASSWORD_SALT: ${PASSWORD_SALT}
@@ -30,16 +32,22 @@ services:
     ports:
       - 5432:5432
     restart: always
-
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$DB_PASSWORD", "psql", "-h", "main-db", "-U", "postgres", "-c", "'\\q'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
   posts:
     build:
       context: .
       dockerfile: posts_service.dockerfile
-    command: ./wait-for-postgres.sh posts-db ./main
+    command: ./main
     ports:
       - 51075:51075
     depends_on:
-      - posts-db
+      posts-db:
+        condition: service_healthy
     environment:
       DB_PASSWORD: ${POSTS_DB_PASSWORD}
       POSTS_SERVER_PORT: 51075
@@ -57,3 +65,8 @@ services:
     ports:
       - 5433:5432
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "PGPASSWORD=$DB_PASSWORD", "psql", "-h", "posts-db", "-U", "postgres", "-c", "'\\q'"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
