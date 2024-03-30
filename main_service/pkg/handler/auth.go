@@ -6,6 +6,7 @@ import (
 	"soa/main_service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type signInInput struct {
@@ -22,6 +23,13 @@ func (h *Handler) signUp(c *gin.Context) {
 
 	err := h.services.Authorization.CreateUser(input)
 	if err != nil {
+        if pgErr, ok := err.(*pq.Error); ok {
+            if pgErr.Code == "23505" { // violation of unique constraint
+                newErrorResponse(c, http.StatusBadRequest, "invalid input body: login exists")
+                return
+            }
+        }
+
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

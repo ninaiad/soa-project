@@ -33,7 +33,7 @@ services:
       - 5432:5432
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "PGPASSWORD=$DB_PASSWORD", "psql", "-h", "main-db", "-U", "postgres", "-c", "'\\q'"]
+      test: ["CMD-SHELL", "PGPASSWORD=$MAIN_DB_PASSWORD", "psql", "-h", "main-db", "-U", "postgres", "-c", "'\\q'"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -66,7 +66,7 @@ services:
       - 5433:5432
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "PGPASSWORD=$DB_PASSWORD", "psql", "-h", "posts-db", "-U", "postgres", "-c", "'\\q'"]
+      test: ["CMD-SHELL", "PGPASSWORD=$POSTS_DB_PASSWORD", "psql", "-h", "posts-db", "-U", "postgres", "-c", "'\\q'"]
       interval: 5s
       timeout: 5s
       retries: 5
