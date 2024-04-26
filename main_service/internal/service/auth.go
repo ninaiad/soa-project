@@ -9,7 +9,7 @@ import (
 	"soa-main/internal/database"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var salt = os.Getenv("PASSWORD_SALT")
@@ -21,7 +21,7 @@ const (
 )
 
 type tokenClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	UserId int `json:"user_id"`
 }
 
@@ -75,10 +75,11 @@ func (a *AuthService) GenerateToken(username, password string) (string, error) {
 		return "", err
 	}
 
+	tNow := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(tokenTTL).Unix(),
-			IssuedAt:  time.Now().Unix(),
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(tNow.Add(tokenTTL)),
+			IssuedAt:  jwt.NewNumericDate(tNow),
 		},
 		user.Id,
 	})
