@@ -16,6 +16,7 @@
 .idea
 
 # *.tar
+.env
 
 # config.yml
 # config*.yml
