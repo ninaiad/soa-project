@@ -2,16 +2,16 @@ package service
 
 import (
 	"google.golang.org/grpc"
-	"soa/main_service"
-	"soa/main_service/pkg/database"
-	pb "soa/posts"
+	"soa-main/internal/user"
+	"soa-main/internal/database"
+	pb "soa-main/internal/posts_proto"
 )
 
 type Authorization interface {
-	CreateUser(user main_service.User) error
+	CreateUser(user user.User) error
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (int, error)
-	UpdateUser(userId int, update main_service.UserPublic) (main_service.UserPublic, error)
+	UpdateUser(userId int, update user.UserPublic) (user.UserPublic, error)
 }
 
 type Service struct {

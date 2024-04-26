@@ -5,9 +5,9 @@ import (
 	"net"
 	"os"
 
-	pb "soa/posts"
-	"soa/posts_service/internal/database"
-	"soa/posts_service/internal/posts"
+	pb "soa-posts/internal/proto"
+	"soa-posts/internal/posts"
+	"soa-posts/internal/database"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -69,7 +69,7 @@ func main() {
 }
 
 func initConfig() error {
-	viper.AddConfigPath("./posts_service/configs")
+	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
 	return viper.ReadInConfig()
 }

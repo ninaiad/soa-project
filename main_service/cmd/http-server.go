@@ -1,4 +1,4 @@
-package main_service
+package main
 
 import (
 	"context"

@@ -3,7 +3,7 @@ version: "3"
 services:
   main:
     build:
-      context: .
+      context: ./main_service
       dockerfile: main_service.dockerfile
     command: ./main
     ports:
@@ -40,7 +40,7 @@ services:
   
   posts:
     build:
-      context: .
+      context: ./posts_service
       dockerfile: posts_service.dockerfile
     command: ./main
     ports:

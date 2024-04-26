@@ -3,7 +3,7 @@ package handler
 import (
 	"log"
 	"net/http"
-	"soa/main_service"
+	"soa-main/internal/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -15,7 +15,7 @@ type signInInput struct {
 }
 
 func (h *Handler) signUp(c *gin.Context) {
-	var input main_service.User
+	var input user.User
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
 		return
@@ -74,7 +74,7 @@ func (h *Handler) updateUser(c *gin.Context) {
 		return
 	}
 
-	var input main_service.UserPublic
+	var input user.UserPublic
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
 		return

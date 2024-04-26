@@ -3,9 +3,9 @@ syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-package posts;
+package posts_proto;
 
-option go_package = "soa-project/posts";
+option go_package = "soa-main/posts_proto";
 
 service PostsServer {
     rpc CreatePost(CreateRequest) returns (CreateResponse) {}

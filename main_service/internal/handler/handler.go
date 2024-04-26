@@ -2,7 +2,7 @@ package handler
 
 import (
 	"log"
-	"soa/main_service/pkg/service"
+	"soa-main/internal/service"
 
 	"github.com/gin-gonic/gin"
 )

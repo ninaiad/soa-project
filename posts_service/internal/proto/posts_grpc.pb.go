@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.25.2
-// source: posts/posts.proto
+// source: proto/posts.proto
 
-package posts
+package proto
 
 import (
 	context "context"
@@ -40,7 +40,7 @@ func NewPostsServerClient(cc grpc.ClientConnInterface) PostsServerClient {
 
 func (c *postsServerClient) CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
 	out := new(CreateResponse)
-	err := c.cc.Invoke(ctx, "/posts.PostsServer/CreatePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/CreatePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *postsServerClient) CreatePost(ctx context.Context, in *CreateRequest, o
 
 func (c *postsServerClient) UpdatePost(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/posts.PostsServer/UpdatePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/UpdatePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *postsServerClient) UpdatePost(ctx context.Context, in *UpdateRequest, o
 
 func (c *postsServerClient) DeletePost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, "/posts.PostsServer/DeletePost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/DeletePost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *postsServerClient) DeletePost(ctx context.Context, in *PostIdRequest, o
 
 func (c *postsServerClient) GetPost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*Post, error) {
 	out := new(Post)
-	err := c.cc.Invoke(ctx, "/posts.PostsServer/GetPost", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/GetPost", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (c *postsServerClient) GetPost(ctx context.Context, in *PostIdRequest, opts
 
 func (c *postsServerClient) GetPageOfPosts(ctx context.Context, in *GetPageOfPostsRequest, opts ...grpc.CallOption) (*GetPageOfPostsResponse, error) {
 	out := new(GetPageOfPostsResponse)
-	err := c.cc.Invoke(ctx, "/posts.PostsServer/GetPageOfPosts", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/GetPageOfPosts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func _PostsServer_CreatePost_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/posts.PostsServer/CreatePost",
+		FullMethod: "/posts_proto.PostsServer/CreatePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).CreatePost(ctx, req.(*CreateRequest))
@@ -155,7 +155,7 @@ func _PostsServer_UpdatePost_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/posts.PostsServer/UpdatePost",
+		FullMethod: "/posts_proto.PostsServer/UpdatePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).UpdatePost(ctx, req.(*UpdateRequest))
@@ -173,7 +173,7 @@ func _PostsServer_DeletePost_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/posts.PostsServer/DeletePost",
+		FullMethod: "/posts_proto.PostsServer/DeletePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).DeletePost(ctx, req.(*PostIdRequest))
@@ -191,7 +191,7 @@ func _PostsServer_GetPost_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/posts.PostsServer/GetPost",
+		FullMethod: "/posts_proto.PostsServer/GetPost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).GetPost(ctx, req.(*PostIdRequest))
@@ -209,7 +209,7 @@ func _PostsServer_GetPageOfPosts_Handler(srv interface{}, ctx context.Context, d
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/posts.PostsServer/GetPageOfPosts",
+		FullMethod: "/posts_proto.PostsServer/GetPageOfPosts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).GetPageOfPosts(ctx, req.(*GetPageOfPostsRequest))
@@ -221,7 +221,7 @@ func _PostsServer_GetPageOfPosts_Handler(srv interface{}, ctx context.Context, d
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PostsServer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "posts.PostsServer",
+	ServiceName: "posts_proto.PostsServer",
 	HandlerType: (*PostsServerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -246,5 +246,5 @@ var PostsServer_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "posts/posts.proto",
+	Metadata: "proto/posts.proto",
 }

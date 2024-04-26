@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"soa/posts"
+	"soa-main/internal/posts_proto"
 	"strconv"
 	"time"
 
@@ -43,7 +43,7 @@ func (h *Handler) createPost(c *gin.Context) {
 		return
 	}
 
-	postId, err := h.services.PostsServerClient.CreatePost(context.Background(), &posts.CreateRequest{AuthorId: int32(userId), Text: input.Text})
+	postId, err := h.services.PostsServerClient.CreatePost(context.Background(), &posts_proto.CreateRequest{AuthorId: int32(userId), Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -78,7 +78,7 @@ func (h *Handler) updatePost(c *gin.Context) {
 		return
 	}
 
-	_, err = h.services.PostsServerClient.UpdatePost(context.Background(), &posts.UpdateRequest{AuthorId: int32(userId), PostId: int32(postId), Text: input.Text})
+	_, err = h.services.PostsServerClient.UpdatePost(context.Background(), &posts_proto.UpdateRequest{AuthorId: int32(userId), PostId: int32(postId), Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -107,7 +107,7 @@ func (h *Handler) deletePost(c *gin.Context) {
 		return
 	}
 
-	_, err = h.services.PostsServerClient.DeletePost(context.Background(), &posts.PostIdRequest{AuthorId: int32(userId), PostId: int32(postId)})
+	_, err = h.services.PostsServerClient.DeletePost(context.Background(), &posts_proto.PostIdRequest{AuthorId: int32(userId), PostId: int32(postId)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -136,7 +136,7 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
-	post, err := h.services.PostsServerClient.GetPost(context.Background(), &posts.PostIdRequest{AuthorId: int32(userId), PostId: int32(postId)})
+	post, err := h.services.PostsServerClient.GetPost(context.Background(), &posts_proto.PostIdRequest{AuthorId: int32(userId), PostId: int32(postId)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -177,7 +177,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	posts, err := h.services.PostsServerClient.GetPageOfPosts(context.Background(), &posts.GetPageOfPostsRequest{AuthorId: int32(userId), PageNum: int32(pageNum), PageSize: int32(pageSize)})
+	posts, err := h.services.PostsServerClient.GetPageOfPosts(context.Background(), &posts_proto.GetPageOfPostsRequest{AuthorId: int32(userId), PageNum: int32(pageNum), PageSize: int32(pageSize)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

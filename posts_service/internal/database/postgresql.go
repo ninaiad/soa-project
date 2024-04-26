@@ -24,7 +24,7 @@ type Config struct {
 }
 
 func runDBMigration(cfg Config) error {
-	m, err := migrate.New("file://./posts_service/migration-files",
+	m, err := migrate.New("file://./migration-files",
 		fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 			cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.DBName, cfg.SSLMode))
 	if err != nil {

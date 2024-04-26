@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"soa/main_service"
-	"soa/main_service/pkg/database"
+	"soa-main/internal/user"
+	"soa-main/internal/database"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -33,7 +33,7 @@ func CreateAuthService(db database.Authorization) *AuthService {
 	return &AuthService{db: db}
 }
 
-func (a *AuthService) CreateUser(user main_service.User) error {
+func (a *AuthService) CreateUser(user user.User) error {
 	user.Password = generatePasswordHash(user.Password)
 	user.TimeCreated = time.Now().Format(time.RFC3339)
 	user.TimeUpdated = user.TimeCreated
@@ -44,10 +44,10 @@ func (a *AuthService) CreateUser(user main_service.User) error {
 	return a.db.CreateUser(user)
 }
 
-func (a *AuthService) UpdateUser(userId int, update main_service.UserPublic) (main_service.UserPublic, error) {
+func (a *AuthService) UpdateUser(userId int, update user.UserPublic) (user.UserPublic, error) {
 	userData, err := a.db.GetUserData(userId)
 	if err != nil {
-		return main_service.UserPublic{}, err
+		return user.UserPublic{}, err
 	}
 
 	if update.Birthday == "" {

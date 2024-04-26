@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"soa/posts_service"
+	"soa-posts/internal/post"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -36,15 +36,15 @@ func (p *PostsPostgres) DeletePost(userId, postId int32) error {
 	return err
 }
 
-func (p *PostsPostgres) GetPost(userId, postId int32) (*posts_service.Post, error) {
-	var post posts_service.Post
+func (p *PostsPostgres) GetPost(userId, postId int32) (*post.Post, error) {
+	var post post.Post
 	q := fmt.Sprintf("SELECT txt, timeUpdated FROM %s WHERE user_id=$1 AND id=$2", postsTable)
 	err := p.db.Get(&post, q, userId, postId)
 	return &post, err
 }
 
-func (p *PostsPostgres) GetPageOfPosts(userId, pageNum, pageSize int32) (*[]posts_service.Post, error) {
-	posts := []posts_service.Post{}
+func (p *PostsPostgres) GetPageOfPosts(userId, pageNum, pageSize int32) (*[]post.Post, error) {
+	posts := []post.Post{}
 	q := fmt.Sprintf("SELECT s.* FROM (SELECT txt, timeUpdated FROM %s WHERE user_id=$1) s ORDER BY s.timeUpdated DESC OFFSET $2 LIMIT $3", postsTable)
 	err := p.db.Select(&posts, q, userId, (pageNum-1)*pageSize, pageSize)
 	return &posts, err

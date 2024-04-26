@@ -5,10 +5,9 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"soa/main_service"
-	"soa/main_service/pkg/database"
-	"soa/main_service/pkg/handler"
-	"soa/main_service/pkg/service"
+	"soa-main/internal/handler"
+	"soa-main/internal/database"
+	"soa-main/internal/service"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -53,7 +52,7 @@ func main() {
 	services := service.NewService(repos, postsC)
 	handlers := handler.NewHandler(services)
 
-	srv := new(main_service.Server)
+	srv := new(Server)
 	go func() {
 		if err := srv.Run(viper.GetString("port"), handlers.SetupRouter()); err != nil {
 			log.Fatalf("error occured while running http server: %s", err.Error())
@@ -74,7 +73,7 @@ func main() {
 }
 
 func initConfig() error {
-	viper.AddConfigPath("./main_service/configs")
+	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")
 	return viper.ReadInConfig()
 }

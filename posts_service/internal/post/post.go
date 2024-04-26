@@ -1,4 +1,4 @@
-package posts_service
+package post
 
 type Post struct {
 	Txt         string
