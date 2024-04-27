@@ -1,5 +1,9 @@
 port: "8000"
 
+kafka:
+    topic: "statistics"
+    group_name: "statistics"
+
 db:
     username: "postgres"
     host: "host.docker.internal"

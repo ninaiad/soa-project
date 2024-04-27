@@ -5,11 +5,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
+	"time"
+
 	"soa-main/internal/database"
 	"soa-main/internal/handler"
 	"soa-main/internal/service"
-	"syscall"
 
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
@@ -41,6 +44,24 @@ func main() {
 		log.Fatalf("failed to initialize db: %s", err.Error())
 	}
 
+	// initialise Kafka
+	kafkaConfig := service.KafkaConfig{
+		KafkaAddr:      os.Getenv("KAFKA_ADDR"),
+		KafkaTopic:     viper.GetString("kafka.topic"),
+		KafkaGroupName: viper.GetString("kafka.group_name"),
+	}
+	if kafkaConfig.KafkaAddr == "" {
+		log.Fatalln("Missing KAFKA_ADDR")
+		return
+	}
+
+	// connect to Kafka
+	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": kafkaConfig.KafkaAddr})
+	if err != nil {
+		log.Fatalf("error initialising kafka producer: %s", err.Error())
+	}
+	defer p.Close()
+
 	// initialise grpc client
 	postsC, err := grpc.Dial(os.Getenv("POSTS_SERVER_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -49,7 +70,10 @@ func main() {
 	defer postsC.Close()
 
 	repos := database.NewDatabase(db)
-	services := service.NewService(repos, postsC)
+
+	kafkaEventCh := make(chan kafka.Event)
+	services := service.NewService(repos, postsC, p, kafkaConfig, kafkaEventCh)
+
 	handlers := handler.NewHandler(services)
 
 	srv := new(Server)
@@ -61,14 +85,29 @@ func main() {
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
+	for {
+		select {
+		case <-quit:
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+			defer cancel()
+			if err := srv.Shutdown(ctx); err != nil {
+				log.Fatalf("error occured on server shutting down: %s", err.Error())
+			}
 
-	if err := srv.Shutdown(context.Background()); err != nil {
-		log.Fatalf("error occured on server shutting down: %s", err.Error())
-	}
+			if err := db.Close(); err != nil {
+				log.Fatalf("error occured on db connection close: %s", err.Error())
+			}
 
-	if err := db.Close(); err != nil {
-		log.Fatalf("error occured on db connection close: %s", err.Error())
+			return
+		case e := <-kafkaEventCh:
+			m := e.(*kafka.Message)
+			if m.TopicPartition.Error != nil {
+				log.Printf("Delivery failed: %v\n", m.TopicPartition.Error)
+			} else {
+				log.Printf("Delivered message to topic %s [%d] at offset %v\n",
+					*m.TopicPartition.Topic, m.TopicPartition.Partition, m.TopicPartition.Offset)
+			}
+		}
 	}
 }
 

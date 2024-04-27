@@ -33,7 +33,7 @@ func CreateAuthService(db database.Authorization) *AuthService {
 	return &AuthService{db: db}
 }
 
-func (a *AuthService) CreateUser(user user.User) error {
+func (a *AuthService) CreateUser(user user.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	user.TimeCreated = time.Now().Format(time.RFC3339)
 	user.TimeUpdated = user.TimeCreated
@@ -69,10 +69,10 @@ func (a *AuthService) UpdateUser(userId int, update user.UserPublic) (user.UserP
 	return update, a.db.UpdateUser(userId, update, time.Now().Format(time.RFC3339))
 }
 
-func (a *AuthService) GenerateToken(username, password string) (string, error) {
+func (a *AuthService) GenerateToken(username, password string) (string, int, error) {
 	user, err := a.db.GetUser(username, generatePasswordHash(password))
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	tNow := time.Now()
@@ -84,7 +84,8 @@ func (a *AuthService) GenerateToken(username, password string) (string, error) {
 		user.Id,
 	})
 
-	return token.SignedString([]byte(signingKey))
+	tokenS, err := token.SignedString([]byte(signingKey))
+	return tokenS, user.Id, err
 }
 
 func (a *AuthService) ParseToken(accessToken string) (int, error) {

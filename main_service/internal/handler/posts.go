@@ -124,6 +124,18 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
+	var authorId int
+	authorIdS, ok := c.GetQuery("author_id")
+	if !ok {
+		authorId = userId
+	} else {
+		authorId, err = strconv.Atoi(authorIdS)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
+			return
+		}
+	}
+
 	postIdS, ok := c.GetQuery("id")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no id parameter for post")
@@ -136,7 +148,7 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
-	post, err := h.services.PostsServerClient.GetPost(context.Background(), &posts_proto.PostIdRequest{AuthorId: int32(userId), PostId: int32(postId)})
+	post, err := h.services.PostsServerClient.GetPost(context.Background(), &posts_proto.PostIdRequest{AuthorId: int32(authorId), PostId: int32(postId)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -151,6 +163,18 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	var authorId int
+	authorIdS, ok := c.GetQuery("author_id")
+	if !ok {
+		authorId = userId
+	} else {
+		authorId, err = strconv.Atoi(authorIdS)
+		if err != nil {
+			newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
+			return
+		}
 	}
 
 	pageNumS, ok := c.GetQuery("page_num")
@@ -177,7 +201,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	posts, err := h.services.PostsServerClient.GetPageOfPosts(context.Background(), &posts_proto.GetPageOfPostsRequest{AuthorId: int32(userId), PageNum: int32(pageNum), PageSize: int32(pageSize)})
+	posts, err := h.services.PostsServerClient.GetPageOfPosts(context.Background(), &posts_proto.GetPageOfPostsRequest{AuthorId: int32(authorId), PageNum: int32(pageNum), PageSize: int32(pageSize)})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
