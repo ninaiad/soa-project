@@ -1,0 +1,12 @@
+http_port: "8081"
+
+kafka:
+    topic: "statistics"
+    group_name: "statistics"
+
+db:
+    username: "statistics"
+    host: "host.docker.internal"
+    port: 9000
+    dbname: "statistics"
+    table_format: "JSONEachRow"
