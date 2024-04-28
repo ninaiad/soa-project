@@ -13,13 +13,14 @@
 
 ### Handler
 
-Уровень Handler обрабатывает HTTP запросы.
-
 #### /internal/handler/auth.go
 Обработчики HTTP запросов, связанные с аутентификацией.
 
 #### /internal/handler/posts.go
-Обработчики handlers HTTP запросов, связанные с созданием и просмотром постов пользователей (запросы перенаправляются в gRPC сервер Posts Service).
+Обработчики HTTP запросов, связанные с созданием и просмотром постов пользователей (запросы перенаправляются в gRPC сервер Posts Service).
+
+#### /internal/handler/posts_statistics.go
+Обработчики HTTP запросов, собирающие лайки и просмотры постов.
 
 ### Service
 
@@ -65,12 +66,18 @@ curl --location 'http://localhost:8000/post' \
 ```
 
 #### Просмотр поста
+
+Для просмотра чужих постов необходимо указать дополнительный параметр `author_id`.
+
 ```sh
-curl --location 'http://localhost:8000/post?id=7' \
+curl --location 'http://localhost:8000/post?id=7&author_id=4' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQyODA3MDIsImlhdCI6MTcxNDIzNzUwMiwidXNlcl9pZCI6MX0.N3Ya20bKxFRba459_B7pItsL1wdESqZtkR3F3GWWft4'
 ```
 
 #### Просмотр нескольких постов
+
+Для просмотра чужих постов необходимо указать дополнительный параметр `author_id`.
+
 ```sh
 curl --location 'http://localhost:8000/posts?page_num=1&page_size=5' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQyODA3MDIsImlhdCI6MTcxNDIzNzUwMiwidXNlcl9pZCI6MX0.N3Ya20bKxFRba459_B7pItsL1wdESqZtkR3F3GWWft4'
