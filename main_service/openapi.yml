@@ -41,7 +41,10 @@ paths:
             application/json:
               schema:
                 type: object
-                example: {"token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0"}
+                example: {
+                  "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0",
+                  "user_id": 13
+                }
         '400':
           description: "Wrong input format: password or username not supplied or input fields are incorrect"
         '500':
@@ -65,7 +68,10 @@ paths:
             application/json:
               schema:
                 type: object
-                example: {"token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0"}
+                example: {
+                  "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0",
+                  "user_id": 13
+                }
         '400':
           description: Wrong input format or user with provided username and password doesn't exist
   /user:
@@ -98,6 +104,8 @@ paths:
                 $ref: '#/components/schemas/UserPublic'
         '400':
           description: Wrong input format
+        '401':
+          description: Unauthorized
         '500':
           description: Internal server error
   /post:
@@ -125,9 +133,11 @@ paths:
                 example: {"post_id" : 123}
         '400':
           description: Wrong input format
+        '401':
+          description: Unauthorized
         '500':
           description: Internal server error
-  /post{id}:
+  /post{id}{author_id}:
     get:
       security:
         - bearerAuth: []
@@ -142,6 +152,12 @@ paths:
             type: integer
           required: true
           description: id of the post to get
+        - in: path
+          name: author_id
+          schema:
+            type: integer
+          required: false
+          description: Author of the post id. If not specified the logged in user's id is used instead
       responses:
         '200':
           description: "Successful operation: returns the post data"
@@ -155,8 +171,11 @@ paths:
                 }
         '400':
           description: Wrong input format
+        '401':
+          description: Unauthorized
         '500':
           description: Internal server error
+  /post{id}:
     put:
       security:
         - bearerAuth: []
@@ -206,9 +225,11 @@ paths:
           description: Successful operation
         '400':
           description: Wrong input format
+        '401':
+          description: Unauthorized
         '500':
           description: Internal server error
-  /posts{page_num}{page_size}:
+  /posts{page_num}{page_size}{author_id}:
     get:
       security:
         - bearerAuth: []
@@ -229,6 +250,12 @@ paths:
             type: integer
           required: true
           description: Number of posts on a page
+        - in: path
+          name: author_id
+          schema:
+            type: integer
+          required: false
+          description: Author of the post id. If not specified the logged in user's id is used instead
       responses:
         '200':
           description: "Successful operation: returns the post data"
@@ -238,9 +265,78 @@ paths:
                 $ref: '#/components/schemas/PageOfPosts'
         '400':
           description: Wrong input format
+        '401':
+          description: Unauthorized
         '500':
           description: Internal server error
-
+  /view{post_id}{author_id}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
+      summary: Add a view to a post
+      description: Operation accessible only to logged in users
+      parameters:
+      - in: path
+        name: post_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: author_id
+        schema:
+          type: integer
+        required: false
+        description: Author of the post id. If not specified the logged in user's id is used instead
+      responses:
+        '200':
+          description: "Successful operation: returns new post id"
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {"status" : "ok"}
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /like{post_id}{author_id}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
+      summary: Add a view to a post
+      description: Operation accessible only to logged in users
+      parameters:
+      - in: path
+        name: post_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: author_id
+        schema:
+          type: integer
+        required: false
+        description: Author of the post id. If not specified the logged in user's id is used instead
+      responses:
+        '200':
+          description: "Successful operation: returns new post id"
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {"status" : "ok"}
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
 components:
   schemas:
     User:
