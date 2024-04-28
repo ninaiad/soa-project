@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"soa-main/internal/user"
 	"soa-main/internal/database"
+	"soa-main/internal/user"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

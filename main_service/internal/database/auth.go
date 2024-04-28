@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"soa-main/internal/user"
 	"github.com/jmoiron/sqlx"
+	"soa-main/internal/user"
 )
 
 type AuthPostgres struct {

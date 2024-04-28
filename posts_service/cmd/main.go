@@ -5,9 +5,9 @@ import (
 	"net"
 	"os"
 
-	pb "soa-posts/internal/proto"
-	"soa-posts/internal/posts"
 	"soa-posts/internal/database"
+	"soa-posts/internal/posts"
+	pb "soa-posts/internal/proto"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"

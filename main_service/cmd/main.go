@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"soa-main/internal/handler"
 	"soa-main/internal/database"
+	"soa-main/internal/handler"
 	"soa-main/internal/service"
 	"syscall"
 

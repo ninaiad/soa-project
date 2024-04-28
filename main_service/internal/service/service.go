@@ -2,9 +2,9 @@ package service
 
 import (
 	"google.golang.org/grpc"
-	"soa-main/internal/user"
 	"soa-main/internal/database"
 	pb "soa-main/internal/posts_proto"
+	"soa-main/internal/user"
 )
 
 type Authorization interface {

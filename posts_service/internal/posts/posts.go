@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	pb "soa-posts/internal/proto"
 	"soa-posts/internal/database"
+	pb "soa-posts/internal/proto"
 
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
