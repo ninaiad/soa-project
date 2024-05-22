@@ -7,7 +7,7 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(user user.User) error
+	CreateUser(user user.User) (int, error)
 	GetUser(username, password string) (user.User, error)
 	GetUserData(userId int) (user.UserPublic, error)
 	UpdateUser(userId int, update user.UserPublic, timeUpdated string) error

@@ -27,6 +27,9 @@ func (h *Handler) SetupRouter() *gin.Engine {
 	router.GET("/post", h.userIdentity, h.getPost)
 	router.GET("/posts", h.userIdentity, h.getPageOfPosts)
 
+	router.POST("/view", h.userIdentity, h.viewPost)
+	router.POST("/like", h.userIdentity, h.likePost)
+
 	log.Println("router set up")
 	return router
 }

@@ -21,7 +21,7 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	err := h.services.Authorization.CreateUser(input)
+	userId, err := h.services.Authorization.CreateUser(input)
 	if err != nil {
 		if pgErr, ok := err.(*pq.Error); ok {
 			if pgErr.Code == "23505" { // violation of unique constraint
@@ -34,7 +34,7 @@ func (h *Handler) signUp(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
+	token, _, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -43,7 +43,8 @@ func (h *Handler) signUp(c *gin.Context) {
 	log.Println("new successful sign-up")
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"token":   token,
+		"user_id": userId,
 	})
 }
 
@@ -54,7 +55,7 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	token, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
+	token, userId, err := h.services.Authorization.GenerateToken(input.Username, input.Password)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -63,7 +64,8 @@ func (h *Handler) signIn(c *gin.Context) {
 	log.Println("new successful sign-in")
 
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"token": token,
+		"token":   token,
+		"user_id": userId,
 	})
 }
 
