@@ -62,8 +62,14 @@ func main() {
 	}
 	defer p.Close()
 
-	// initialise grpc client
+	// initialise grpc clients
 	postsC, err := grpc.Dial(os.Getenv("POSTS_SERVER_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer postsC.Close()
+
+	statsC, err := grpc.Dial(os.Getenv("STATISTICS_SERVER_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -72,7 +78,7 @@ func main() {
 	repos := database.NewDatabase(db)
 
 	kafkaEventCh := make(chan kafka.Event)
-	services := service.NewService(repos, postsC, p, kafkaConfig, kafkaEventCh)
+	services := service.NewService(repos, postsC, statsC, p, kafkaConfig, kafkaEventCh)
 
 	handlers := handler.NewHandler(services)
 

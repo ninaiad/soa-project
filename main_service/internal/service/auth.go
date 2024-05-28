@@ -44,6 +44,10 @@ func (a *AuthService) CreateUser(user user.User) (int, error) {
 	return a.db.CreateUser(user)
 }
 
+func (a *AuthService) GetUserLogin(userId int) (user.User, error) {
+	return a.db.GetUserLogin(userId)
+}
+
 func (a *AuthService) UpdateUser(userId int, update user.UserPublic) (user.UserPublic, error) {
 	userData, err := a.db.GetUserData(userId)
 	if err != nil {
