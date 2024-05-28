@@ -32,6 +32,13 @@ func (a *AuthPostgres) GetUser(username, password string) (user.User, error) {
 	return user, err
 }
 
+func (a *AuthPostgres) GetUserLogin(userId int) (user.User, error) {
+	var user user.User
+	query := fmt.Sprintf("SELECT username FROM %s WHERE id=$1", usersTable)
+	err := a.db.Get(&user, query, userId)
+	return user, err
+}
+
 func (a *AuthPostgres) GetUserData(userId int) (user.UserPublic, error) {
 	user := user.UserPublic{}
 	query := fmt.Sprintf("SELECT name, surname, birthday, email, phone FROM %s WHERE id = $1", usersTable)
