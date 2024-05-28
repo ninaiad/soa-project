@@ -91,6 +91,7 @@ services:
     environment:
       DB_PASSWORD: ${CLICKHOUSE_PASSWORD}
       KAFKA_ADDR: kafka:9092
+      STATISTICS_SERVER_PORT: 51076
     restart: on-failure
 
   clickhouse:

@@ -5,16 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"soa-statistics/internal/common"
 	"soa-statistics/internal/database"
+	"soa-statistics/internal/statistics"
 	"syscall"
 	"time"
 
+	pb "soa-statistics/internal/proto"
+
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection" // to be able to connect via grpcurl
 )
 
 func main() {
@@ -61,6 +67,37 @@ func main() {
 	go func() {
 		httpErrorCh <- httpServer.ListenAndServe()
 	}()
+
+	log.Println("initialising the gRPC server next")
+	// read server address from env
+	addr := "0.0.0.0:"
+	port := os.Getenv("STATISTICS_SERVER_PORT")
+	if port == "" {
+		addr = "0.0.0.0:51706"
+		log.Printf("Missing STATISTICS_SERVER_PORT, using default value: 51076")
+	} else {
+		addr += port
+	}
+
+	// create a TCP socket
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	// create & register the server
+	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+	s := statistics.NewStatisticsService(database.NewDatabase(db))
+	pb.RegisterStatisticsServiceServer(grpcServer, s)
+
+	// start the server
+	err = grpcServer.Serve(listener)
+	if err != nil {
+		log.Fatalf("server failed")
+	}
+
+	log.Println("the gRPC is set up")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
