@@ -154,7 +154,7 @@ services:
 
   e2e-tests:
     build:
-      context: tests
+      context: tests/e2e
       dockerfile: e2e.dockerfile
     environment:
       SERVER_ADDR: http://main:8000
