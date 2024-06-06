@@ -16,7 +16,7 @@ type PostsService struct {
 	db database.PostsDatabase
 }
 
-func NewPostsService(db *database.Database) *PostsService {
+func NewPostsService(db database.PostsDatabase) *PostsService {
 	return &PostsService{db: db}
 }
 
