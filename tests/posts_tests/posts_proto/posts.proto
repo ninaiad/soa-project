@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+package posts_proto;
+
+option go_package = "soa-main/posts_proto";
+
+service PostsServer {
+    rpc CreatePost(CreateRequest) returns (CreateResponse) {}
+    rpc UpdatePost(UpdateRequest) returns (google.protobuf.Empty) {}
+    rpc DeletePost(PostIdRequest) returns (google.protobuf.Empty) {}
+    rpc GetPost(PostIdRequest) returns (Post) {}
+    rpc GetPageOfPosts(GetPageOfPostsRequest) returns (GetPageOfPostsResponse) {}
+}
+
+message CreateRequest {
+    int32 author_id = 1;
+    string text = 2;
+}
+
+message CreateResponse {
+    int32 post_id = 1;
+}
+
+message UpdateRequest {
+    int32 author_id = 1;
+    int32 post_id = 2;
+    string text = 3;
+}
+
+message PostIdRequest {
+    int32 author_id = 1;
+    int32 post_id = 2;
+}
+
+message Post {
+    string text = 1;
+    google.protobuf.Timestamp time_updated = 2; 
+}
+
+
+message GetPageOfPostsRequest {
+    int32 author_id = 1;
+    int32 page_num = 2;
+    int32 page_size = 3;
+}
+
+message GetPageOfPostsResponse {
+    int32 page_num = 1;
+    int32 page_size = 2;
+    repeated Post posts = 3;
+}
