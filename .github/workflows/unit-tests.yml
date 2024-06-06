@@ -1,0 +1,29 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+      
+    - name: Set up modules and run tests
+      run: |
+        for dir in $(find . -name 'go.mod' -exec dirname {} \;); do
+          echo "Processing $dir"
+          cd $dir
+          go mod download
+          go test ./... -v
+          cd - > /dev/null
+        done
