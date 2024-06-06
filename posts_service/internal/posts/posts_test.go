@@ -1,6 +1,7 @@
 package posts_test
 
 import (
+	"fmt"
 	"soa-posts/internal/post"
 	"soa-posts/internal/posts"
 	"testing"
@@ -11,83 +12,51 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"google.golang.org/protobuf/types/known/emptypb"
 	pb "soa-posts/internal/proto"
 )
 
-func TestCreatePost(t *testing.T) {
+func TestPosts(t *testing.T) {
 	db := MockPostsDatabase{}
-	svc := posts.NewPostsService(&db)
+	s := posts.NewPostsService(&db)
+
+	_, err := s.GetPost(context.Background(), &pb.PostIdRequest{PostId: 13, AuthorId: 42})
+	assert.Error(t, err)
+	_, err = s.UpdatePost(context.Background(), &pb.UpdateRequest{PostId: 13, AuthorId: 42, Text: ""})
+	assert.Error(t, err)
 
 	req := &pb.CreateRequest{
-		AuthorId: 1,
+		AuthorId: 42,
 		Text:     "Sample post",
 	}
-	db.On("CreatePost", req.AuthorId, req.Text).Return(13, nil)
-
-	res, err := svc.CreatePost(context.Background(), req)
+	res, err := s.CreatePost(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, int32(13), res.PostId)
-	db.AssertExpectations(t)
-}
+	postId := res.PostId
 
-func TestUpdatePost(t *testing.T) {
-	db := MockPostsDatabase{}
-	svc := posts.NewPostsService(&db)
+	getResp, err := s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	assert.NoError(t, err)
+	assert.Equal(t, req.Text, getResp.Text)
 
-	req := &pb.UpdateRequest{
-		AuthorId: 1,
-		PostId:   23,
+	reqUpd := &pb.UpdateRequest{
+		AuthorId: 42,
+		PostId:   postId,
 		Text:     "Updated text",
 	}
-	db.On("UpdatePost", req.AuthorId, req.PostId, req.Text).Return(nil)
-
-	res, err := svc.UpdatePost(context.Background(), req)
+	_, err = s.UpdatePost(context.Background(), reqUpd)
 	assert.NoError(t, err)
-	assert.Equal(t, &emptypb.Empty{}, res)
-	db.AssertExpectations(t)
-}
 
-func TestDeletePost(t *testing.T) {
-	db := MockPostsDatabase{}
-	svc := posts.NewPostsService(&db)
-
-	req := &pb.PostIdRequest{
-		AuthorId: 2,
-		PostId:   42,
-	}
-	db.On("DeletePost", req.AuthorId, req.PostId).Return(nil)
-
-	res, err := svc.DeletePost(context.Background(), req)
+	getResp, err = s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
-	assert.Equal(t, &emptypb.Empty{}, res)
-	db.AssertExpectations(t)
-}
+	assert.Equal(t, reqUpd.Text, getResp.Text)
 
-func TestGetPost(t *testing.T) {
-	db := MockPostsDatabase{}
-	svc := posts.NewPostsService(&db)
-
-	req := &pb.PostIdRequest{
-		AuthorId: 13,
-		PostId:   23,
-	}
-	post := &post.Post{
-		Txt:         "Sample post",
-		TimeUpdated: time.Now().Format(time.RFC3339),
-	}
-	db.On("GetPost", req.AuthorId, req.PostId).Return(post, nil)
-
-	res, err := svc.GetPost(context.Background(), req)
+	_, err = s.DeletePost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
-	assert.Equal(t, post.Txt, res.Text)
-	assert.WithinDuration(t, time.Now(), res.TimeUpdated.AsTime(), time.Second)
-	db.AssertExpectations(t)
+	_, err = s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	assert.Error(t, err)
 }
 
 func TestGetPageOfPosts(t *testing.T) {
 	db := MockPostsDatabase{}
-	svc := posts.NewPostsService(&db)
+	s := posts.NewPostsService(&db)
 
 	req := &pb.GetPageOfPostsRequest{
 		AuthorId: 1,
@@ -100,7 +69,7 @@ func TestGetPageOfPosts(t *testing.T) {
 	}
 	db.On("GetPageOfPosts", req.AuthorId, req.PageNum, req.PageSize).Return(posts, nil)
 
-	res, err := svc.GetPageOfPosts(context.Background(), req)
+	res, err := s.GetPageOfPosts(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, req.PageNum, res.PageNum)
 	assert.Equal(t, int32(len(*posts)), res.PageSize)
@@ -108,28 +77,64 @@ func TestGetPageOfPosts(t *testing.T) {
 	db.AssertExpectations(t)
 }
 
+type postExt struct {
+	PostId      int32
+	AuthorId    int32
+	Text        string
+	TimeUpdated string
+}
+
 type MockPostsDatabase struct {
 	mock.Mock
+	posts []postExt
 }
 
 func (m *MockPostsDatabase) CreatePost(authorId int32, text string) (int32, error) {
-	args := m.Called(authorId, text)
-	return int32(args.Int(0)), args.Error(1)
+	postId := int32(len(m.posts) + 1)
+	m.posts = append(m.posts, postExt{PostId: postId, AuthorId: authorId, Text: text, TimeUpdated: time.Now().Format(time.RFC3339)})
+	return postId, nil
 }
 
 func (m *MockPostsDatabase) UpdatePost(authorId, postId int32, text string) error {
-	args := m.Called(authorId, postId, text)
-	return args.Error(0)
+	for i, p := range m.posts {
+		if p.PostId == postId && p.AuthorId == authorId {
+			m.posts[i] = postExt{PostId: postId, AuthorId: authorId, Text: text, TimeUpdated: time.Now().Format(time.RFC3339)}
+			return nil
+		}
+	}
+	return fmt.Errorf("Not found")
 }
 
 func (m *MockPostsDatabase) DeletePost(authorId, postId int32) error {
-	args := m.Called(authorId, postId)
-	return args.Error(0)
+	toDelete := -1
+	for i, p := range m.posts {
+		if p.PostId == postId && p.AuthorId == authorId {
+			toDelete = i
+			break
+		}
+	}
+	if toDelete == -1 {
+		return fmt.Errorf("Not found")
+	}
+
+	if len(m.posts) == 1 {
+		m.posts = []postExt{}
+		return nil
+	}
+
+	m.posts[toDelete] = m.posts[len(m.posts)-1]
+	m.posts = m.posts[:1]
+	return nil
 }
 
 func (m *MockPostsDatabase) GetPost(authorId, postId int32) (*post.Post, error) {
-	args := m.Called(authorId, postId)
-	return args.Get(0).(*post.Post), args.Error(1)
+	for _, p := range m.posts {
+		if p.PostId == postId && p.AuthorId == authorId {
+			return &post.Post{Txt: p.Text, TimeUpdated: p.TimeUpdated}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("Not found")
 }
 
 func (m *MockPostsDatabase) GetPageOfPosts(authorId, pageNum, pageSize int32) (*[]post.Post, error) {
