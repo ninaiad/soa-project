@@ -25,3 +25,5 @@ cmd.txt
 .txt
 .database
 .DS_Store
+
+__pytest__
