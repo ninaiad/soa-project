@@ -27,3 +27,4 @@ cmd.txt
 .DS_Store
 
 __pytest__
+.ruff_cache

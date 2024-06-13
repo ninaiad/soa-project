@@ -31,7 +31,7 @@ services:
       POSTGRES_PASSWORD: ${MAIN_DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ${MAIN_DB_VOLUME:-./src/gateway/.database/postgres/data}:/var/lib/postgresql/data:rw
+      - ${GATEWAY_DB_VOLUME:?Gateway db volume not set}:/var/lib/postgresql/data:rw
     user: 501:20
     ports:
       - 5432:5432
@@ -64,7 +64,7 @@ services:
       POSTGRES_PASSWORD: ${POSTS_DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ${POSTS_DB_VOLUME:-./src/posts/.database/postgres/data}:/var/lib/postgresql/data:rw
+    - ${POSTS_DB_VOLUME:?Posts db volume not set}:/var/lib/postgresql/data:rw
     user: 501:20
     ports:
       - 5433:5432
@@ -103,7 +103,7 @@ services:
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
       - CLICKHOUSE_DB=statistics
     volumes:
-      - ${CLICKHOUSE_DB_VOLUME:-./src/statistics/.database/}:/var/lib/clickhouse/
+      - ${CLICKHOUSE_DB_VOLUME:?Clickhouse volume path not set}:/var/lib/clickhouse/
     ports:
       - 8123:8123
       - 9000:9000
@@ -159,3 +159,13 @@ services:
     depends_on:
       gateway:
         condition: service_started
+
+  posts-tests:
+    build:
+      context: ./tests/posts_tests
+      dockerfile: posts.dockerfile
+    depends_on:
+      posts:
+        condition: service_started
+    environment:
+      POSTS_SERVER_ADDR: posts:51075

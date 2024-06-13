@@ -1,8 +1,16 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
+
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_CACHE_DIR='/var/cache/pypoetry' \
+    POETRY_HOME='/usr/local' \
+    POETRY_VERSION=1.8.2
+
+RUN python -m pip install poetry
 
 WORKDIR /test
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN poetry install --no-interaction --no-ansi
 
 ENTRYPOINT ["pytest"]

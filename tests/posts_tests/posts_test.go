@@ -10,11 +10,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "posts_tests/posts_proto"
+	pb "posts_tests/proto"
 )
 
 func TestPost(t *testing.T) {
-	conn, err := grpc.NewClient(os.Getenv("POSTS_SERVER_ADDR"), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(
+		os.Getenv("POSTS_SERVER_ADDR"),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	assert.NoError(t, err)
 	defer conn.Close()
 
@@ -49,7 +52,7 @@ func TestPost(t *testing.T) {
 
 	ids := []int32{}
 	for i := 0; i < 5; i++ {
-		res, err := client.CreatePost(context.Background(),
+		res, err = client.CreatePost(context.Background(),
 			&pb.CreateRequest{AuthorId: 1, Text: fmt.Sprint(i)})
 		assert.NoError(t, err)
 		ids = append(ids, res.PostId)

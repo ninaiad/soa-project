@@ -6,38 +6,62 @@ import pytest
 SERVER_ADDR = os.getenv("SERVER_ADDR", "localhost:8080")
 USER_ENDPOINT = SERVER_ADDR + "/user"
 POST_ENDPOINT = SERVER_ADDR + "/post/"
+HELLO_ENDPOINT = SERVER_ADDR + "/hello"
+
 
 RETRYING = httpx.AsyncHTTPTransport(retries=5)
 
 
+async def check_healthy(url: str):
+    async with httpx.AsyncClient(transport=httpx.AsyncHTTPTransport(retries=12)) as c:
+        r = await c.get(url)
+        assert r.status_code == 200
+
+
 @pytest.mark.asyncio
 async def test_user():
+    await check_healthy(HELLO_ENDPOINT)
     async with httpx.AsyncClient(transport=RETRYING) as c:
-        r = await c.post(USER_ENDPOINT + "/sign-in", json={"username": "nonexistant", "password": "testing"})
+        r = await c.post(
+            USER_ENDPOINT + "/sign-in",
+            json={"username": "nonexistant", "password": "testing"},
+        )
         assert r.status_code == 400
 
-        r = await c.post(USER_ENDPOINT + "/sign-up", json={"username": "tester", "password": "testing"})
+        r = await c.post(
+            USER_ENDPOINT + "/sign-up",
+            json={"username": "tester", "password": "testing"},
+        )
         assert r.status_code == 200
         r_json = r.json()
         assert "token" in r_json
         assert "user_id" in r_json
         user_id = r_json["user_id"]
 
-        r = await c.post(USER_ENDPOINT + "/sign-in", json={"username": "tester", "password": "testing"})
+        r = await c.post(
+            USER_ENDPOINT + "/sign-in",
+            json={"username": "tester", "password": "testing"},
+        )
         assert r.status_code == 200
         r_json = r.json()
         assert "token" in r_json
         assert "user_id" in r_json and r_json["user_id"] == user_id
 
-        auth_header = {"Authorization": "Bearer " +
-                       r_json["token"], "Content-Type": "application/json"}
+        auth_header = {
+            "Authorization": "Bearer " + r_json["token"],
+            "Content-Type": "application/json",
+        }
 
-        r = await c.put(USER_ENDPOINT + "/", json={"name": "Test!"}, headers=auth_header)
+        r = await c.put(
+            USER_ENDPOINT + "/", json={"name": "Test!"}, headers=auth_header
+        )
         assert r.status_code == 200
         r_json = r.json()
         assert "name" in r_json and r_json["name"] == "Test!"
 
-        r = await c.put(USER_ENDPOINT + "/", json={"email": "test@test"}, headers=auth_header)
+        r = await c.put(
+            USER_ENDPOINT + "/", json={"email": "test@test"}, headers=auth_header
+        )
         assert r.status_code == 200
         r_json = r.json()
         assert "name" in r_json and r_json["name"] == "Test!"
@@ -46,15 +70,21 @@ async def test_user():
 
 @pytest.mark.asyncio
 async def test_posts():
+    await check_healthy(HELLO_ENDPOINT)
     async with httpx.AsyncClient(transport=RETRYING) as c:
-        r = await c.post(USER_ENDPOINT + "/sign-up", json={"username": "poster", "password": "testing"})
+        r = await c.post(
+            USER_ENDPOINT + "/sign-up",
+            json={"username": "poster", "password": "testing"},
+        )
         assert r.status_code == 200
         r_json = r.json()
         assert "token" in r_json
 
         user_id = r_json["user_id"]
-        auth_header = {"Authorization": "Bearer " +
-                       r_json["token"], "Content-Type": "application/json"}
+        auth_header = {
+            "Authorization": "Bearer " + r_json["token"],
+            "Content-Type": "application/json",
+        }
 
     async with httpx.AsyncClient(transport=RETRYING, headers=auth_header) as c:
         txt1 = "testing testing testing"
@@ -81,10 +111,14 @@ async def test_posts():
         r = await c.post(POST_ENDPOINT, json={"text": txt1})
         assert r.status_code == 200
 
-        r = await c.get(USER_ENDPOINT + "/posts", params={"author_id": user_id, "page_num": 1, "page_size": 3})
+        r = await c.get(
+            USER_ENDPOINT + "/posts",
+            params={"author_id": user_id, "page_num": 1, "page_size": 3},
+        )
         assert r.status_code == 200
         assert "posts" in r.json()
         posts = r.json()["posts"]
         assert len(posts) == 2
-        assert (posts[0]["text"] == txt1 and posts[1]["text"] == txt2) \
-            or (posts[1]["text"] == txt1 and posts[0]["text"] == txt2)
+        assert (posts[0]["text"] == txt1 and posts[1]["text"] == txt2) or (
+            posts[1]["text"] == txt1 and posts[0]["text"] == txt2
+        )
