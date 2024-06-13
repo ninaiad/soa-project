@@ -12,7 +12,7 @@ import (
 )
 
 type postStatistics struct {
-	Id          int32  `json:"Id"`
+	Id          int32  `json:"id"`
 	AuthorId    int32  `json:"author_id"`
 	AuthorLogin string `json:"author_login"`
 	NumLikes    uint64 `json:"num_likes"`
@@ -24,7 +24,7 @@ type topPosts struct {
 }
 
 type userStatistics struct {
-	Id       int32  `json:"Id"`
+	Id       int32  `json:"id"`
 	Login    string `json:"login"`
 	NumLikes uint64 `json:"num_likes"`
 	NumViews uint64 `json:"num_views"`
@@ -48,7 +48,7 @@ func (h *Handler) viewPost(c *gin.Context) {
 		return
 	}
 
-	postIdS, ok := c.GetQuery("post_id")
+	postIdS, ok := c.GetQuery("id")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no id parameter for post")
 		return
@@ -83,7 +83,7 @@ func (h *Handler) likePost(c *gin.Context) {
 		return
 	}
 
-	postIdS, ok := c.GetQuery("post_id")
+	postIdS, ok := c.GetQuery("id")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no id parameter for post")
 		return
@@ -105,7 +105,7 @@ func (h *Handler) likePost(c *gin.Context) {
 }
 
 func (h *Handler) getPostStatistics(c *gin.Context) {
-	postIdS, ok := c.GetQuery("post_id")
+	postIdS, ok := c.GetQuery("id")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no id parameter for post")
 		return

@@ -1,26 +1,36 @@
 openapi: 3.0.3
 info:
-  title: Social Network Main Service REST API
+  title: Toy Social Gateway Service API
   description: |-
-    This is the API description for the main service of a mini Social Network, it handles authorisation of the users.
-    
-    [The Social Network project repository](https://github.com/ninaiad/soa-project)
-  version: 1.0.0
+    [The Social Network project repository](https://github.com/ninaiad/toy-social)
+  version: 2.0.0
 
 tags:
   - name: user
-    description: Operations about user
   - name: posts
-    description: Operations on user's posts
+  - name: statistics
+  - name: healthchecking
 
 paths:
-  /sign-up:
+  /hello:
+    get:
+      tags:
+      - healthchecking
+      summary: Handle for healthchecking
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Hello!
+  /user/sign-up:
     post:
       tags:
         - user
       summary: Creates user and logs them in
       requestBody:
-        description: The only obligatory fields are username and password.
         content:
           application/json:
             schema:
@@ -36,26 +46,24 @@ paths:
 
       responses:
         '200':
-          description: "Successful operation: logs the user in and returns Bearer token"
+          description: OK
           content:
             application/json:
               schema:
                 type: object
-                example: {
-                  "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0",
+                example: {"token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0",
                   "user_id": 13
                 }
         '400':
-          description: "Wrong input format: password or username not supplied or input fields are incorrect"
+          description: Wrong input format
         '500':
           description: Internal server error
-  /sign-in:
+  /user/sign-in:
     post:
       tags:
         - user
       summary: Log user into the system
       requestBody:
-        description: Username and password for this user
         content:
           application/json:
             schema:
@@ -63,17 +71,16 @@ paths:
 
       responses:
         '200':
-          description: "Successful operation: logs the user in and returns Bearer token"
+          description: "Successful operation: logs the user in and returns Bearer token and their ID"
           content:
             application/json:
               schema:
                 type: object
-                example: {
-                  "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0",
-                  "user_id": 13
-                }
+                example: {"token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAzMDQyODksImlhdCI6MTcxMDI2MTA4OSwidXNlcl9pZCI6MX0.UPcmCBOs46im7zGz3gjQmkp4MXzE7jw5Z72aJMqDTP0", "user_id": 13}
         '400':
           description: Wrong input format or user with provided username and password doesn't exist
+        '500':
+          description: Internal server error
   /user:
     put:
       security:
@@ -83,7 +90,6 @@ paths:
       summary: Update user data
       description: Operation accessible only to logged in users
       requestBody:
-        description: Update public data of an existing user
         content:
           application/json:
             schema:
@@ -108,134 +114,12 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-  /post:
-    post:
-      security:
-        - bearerAuth: []
-      tags:
-        - posts
-      summary: Create a new post
-      description: Operation accessible only to logged in users
-      requestBody:
-        description: Post data
-        content:
-          application/json:
-              schema:
-                type: object
-                example: {"text" : "My first post! Hello world!"}
-      responses:
-        '200':
-          description: "Successful operation: returns new post id"
-          content:
-            application/json:
-              schema:
-                type: object
-                example: {"post_id" : 123}
-        '400':
-          description: Wrong input format
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-  /post{id}{author_id}:
+  /user/posts{page_num}{page_size}{author_id}:
     get:
       security:
         - bearerAuth: []
       tags:
         - posts
-      summary: Get a post
-      description: Operation accessible only to logged in users
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: id of the post to get
-        - in: path
-          name: author_id
-          schema:
-            type: integer
-          required: false
-          description: Author of the post id. If not specified the logged in user's id is used instead
-      responses:
-        '200':
-          description: "Successful operation: returns the post data"
-          content:
-            application/json:
-              schema:
-                type: object
-                example: {
-                  "text" : "My first post! Hello world!",
-                  "time_updated": "2024-03-18T21:54:42.123Z"
-                }
-        '400':
-          description: Wrong input format
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-  /post{id}:
-    put:
-      security:
-        - bearerAuth: []
-      tags:
-        - posts
-      summary: Update an existing post
-      description: Operation accessible only to logged in users
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: id of the post to update
-      requestBody:
-        description: New post data
-        content:
-          application/json:
-              schema:
-                type: object
-                example: {
-                  "text" : "My first post! Hello world!"
-                }
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: Wrong input format
-        '500':
-          description: Internal server error
-    delete:
-      security:
-        - bearerAuth: []
-      tags:
-        - posts
-      summary: Delete an existing post
-      description: Operation accessible only to logged in users
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: integer
-          required: true
-          description: id of the post to delete
-      responses:
-        '200':
-          description: Successful operation
-        '400':
-          description: Wrong input format
-        '401':
-          description: Unauthorized
-        '500':
-          description: Internal server error
-  /posts{page_num}{page_size}{author_id}:
-    get:
-      security:
-        - bearerAuth: []
-      tags:
-        - posts
-      summary: Get a page of posts of the logged in user
       description: Operation accessible only to logged in users
       parameters:
         - in: path
@@ -258,7 +142,7 @@ paths:
           description: Author of the post id. If not specified the logged in user's id is used instead
       responses:
         '200':
-          description: "Successful operation: returns the post data"
+          description: OK
           content:
             application/json:
               schema:
@@ -269,17 +153,157 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-  /view{post_id}{author_id}:
+  /post:
     post:
       security:
         - bearerAuth: []
       tags:
         - posts
-      summary: Add a view to a post
+      summary: Create a new post
+      description: Operation accessible only to logged in users
+      requestBody:
+        content:
+          application/json:
+              schema:
+                type: object
+                example: {"text" : "My first post! Hello world!"}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {"post_id" : 123}
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /post{id}{author_id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: id of the post to get
+        - in: path
+          name: author_id
+          schema:
+            type: integer
+          required: false
+          description: Author of the post id. If not specified the logged in user's id is used instead
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                example: {
+                  "text" : "My first post! Hello world!",
+                  "time_updated": "2024-03-18T21:54:42.123Z"
+                }
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /post{id}:
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        description: New post data
+        content:
+          application/json:
+              schema:
+                type: object
+                example: {
+                  "text" : "Updated text!"
+                }
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Wrong input format
+        '500':
+          description: Internal server error
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /post/statistics{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistics
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostStatistics'
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /post/view{id}{author_id}:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - posts
       description: Operation accessible only to logged in users
       parameters:
       - in: path
-        name: post_id
+        name: id
         schema:
           type: integer
         required: true
@@ -287,11 +311,10 @@ paths:
         name: author_id
         schema:
           type: integer
-        required: false
-        description: Author of the post id. If not specified the logged in user's id is used instead
+        required: true
       responses:
         '200':
-          description: "Successful operation: returns new post id"
+          description: OK
           content:
             application/json:
               schema:
@@ -303,17 +326,16 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-  /like{post_id}{author_id}:
+  /post/like{id}{author_id}:
     post:
       security:
         - bearerAuth: []
       tags:
         - posts
-      summary: Add a view to a post
       description: Operation accessible only to logged in users
       parameters:
       - in: path
-        name: post_id
+        name: id
         schema:
           type: integer
         required: true
@@ -321,16 +343,81 @@ paths:
         name: author_id
         schema:
           type: integer
-        required: false
-        description: Author of the post id. If not specified the logged in user's id is used instead
+        required: true
       responses:
         '200':
-          description: "Successful operation: returns new post id"
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 example: {"status" : "ok"}
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /posts/statistics/posts{k}{event_type}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistics
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: k
+          description: Number of posts to return
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: event_type
+          schema:
+            type: string
+            enum: [like, view]
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopKPosts'
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /posts/statistics/users{k}{event_type}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - statistics
+      description: Operation accessible only to logged in users
+      parameters:
+        - in: path
+          name: k
+          description: Number of users to return
+          schema:
+            type: integer
+          required: true
+        - in: path
+          name: event_type
+          schema:
+            type: string
+            enum: [like, view]
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopKUsers'
         '400':
           description: Wrong input format
         '401':
@@ -407,7 +494,47 @@ components:
               "text" : "My first post! Hello world!",
               "time_updated": "2024-03-18T21:54:42.123Z"
             }
-
+    PostStatistics:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 13
+        author_id:
+          type: number
+          example: 123
+        author_login:
+          type: string
+          example: bluefinch
+        num_likes:
+          type: number
+          example: 555     
+        num_views:
+          type: number
+          example: 12321
+    UserStatistics:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 123
+        login:
+          type: string
+          example: bluefinch
+        num_likes:
+          type: number
+          example: 555
+        num_views:
+          type: number
+          example: 12321
+    TopKPosts:
+      type: array
+      items:
+        $ref: '#/components/schemas/PostStatistics'
+    TopKUsers:
+      type: array
+      items:
+        $ref: '#/components/schemas/UserStatistics'
   securitySchemes:
     bearerAuth:
       type: http
