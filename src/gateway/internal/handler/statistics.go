@@ -35,12 +35,6 @@ type topUsers struct {
 }
 
 func (h *Handler) viewPost(c *gin.Context) {
-	_, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
@@ -48,7 +42,7 @@ func (h *Handler) viewPost(c *gin.Context) {
 		return
 	}
 
-	authorId, err = strconv.ParseInt(authorIdS, 10, 64)
+	authorId, err := strconv.ParseInt(authorIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 		return
@@ -76,12 +70,6 @@ func (h *Handler) viewPost(c *gin.Context) {
 }
 
 func (h *Handler) likePost(c *gin.Context) {
-	_, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
@@ -89,7 +77,7 @@ func (h *Handler) likePost(c *gin.Context) {
 		return
 	}
 
-	authorId, err = strconv.ParseInt(authorIdS, 10, 64)
+	authorId, err := strconv.ParseInt(authorIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 		return
@@ -117,12 +105,6 @@ func (h *Handler) likePost(c *gin.Context) {
 }
 
 func (h *Handler) getPostStatistics(c *gin.Context) {
-	_, err := getUserId(c)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
 	postIdS, ok := c.GetQuery("post_id")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no id parameter for post")

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"log"
+	"net/http"
 
 	s "gateway/internal/service"
 
@@ -18,6 +19,11 @@ func NewHandler(service *s.Service) *Handler {
 
 func (h *Handler) SetupRouter() *gin.Engine {
 	router := gin.New()
+
+	// Healthcheck
+	router.GET("/hello", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "Hello!")
+	})
 
 	user := router.Group("/user")
 	{

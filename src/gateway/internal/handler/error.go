@@ -8,7 +8,7 @@ import (
 
 func newErrorResponse(c *gin.Context, statusCode int, message string) {
 	log.Println("error response:", message)
-	c.JSON(statusCode, map[string]interface{}{
+	c.AbortWithStatusJSON(statusCode, map[string]interface{}{
 		"error": message,
 	})
 }
