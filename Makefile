@@ -3,7 +3,7 @@ run:
 	export GATEWAY_DB_VOLUME=./src/gateway/.database/postgres/data && \
 	export POSTS_DB_VOLUME=./src/posts/.database/postgres/data && \
 	export CLICKHOUSE_DB_VOLUME=./src/statistics/.database/ && \
-	docker compose build ateway gateway-db posts posts-db statistics clickhouse zookeeper kafka && \
+	docker compose build gateway gateway-db posts posts-db statistics clickhouse zookeeper kafka && \
 	docker compose up gateway gateway-db posts posts-db statistics clickhouse zookeeper kafka
 
 .PHONY: stop
