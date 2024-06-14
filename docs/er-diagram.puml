@@ -1,0 +1,52 @@
+@startuml
+skinparam linetype ortho
+
+
+entity User {
+  + id : unique number
+  --
+  + login : string
+  + password : string
+  + time_created : timestamp
+  + time_updated : timestamp
+
+  name : text
+  surname : text
+  birthday : date
+  email : string
+  phone : string
+}
+
+
+entity Post {
+  + id : unique number
+  --
+  + author_id : number
+  + text : string
+  + time_updated : timestamp
+}
+
+
+entity "Post Statistics" {
+  + post_id : number
+  + author_id : number
+  --
+  + num_likes : number
+  + num_views : number
+}
+
+
+entity "User Statistics" {
+  + user_id : number
+  --
+  + num_likes : number
+  + num_views : number
+}
+
+
+User ||--o{ Post
+User ||--|| "User Statistics"
+Post ||--|| "Post Statistics"
+
+
+@enduml
