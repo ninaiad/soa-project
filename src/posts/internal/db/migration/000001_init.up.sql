@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS posts (
-    id serial PRIMARY KEY,
-    timeUpdated timestamp NOT NULL,
-    user_id int NOT NULL,
+    id bigserial PRIMARY KEY,
+    time_updated timestamp NOT NULL,
+    user_id bigint NOT NULL,
     txt text
 );

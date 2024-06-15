@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"posts/internal/db"
-	pb "posts/internal/proto"
+	pb "posts/internal/pb"
 	"posts/internal/service"
 
 	"github.com/joho/godotenv"

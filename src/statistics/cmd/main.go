@@ -14,7 +14,7 @@ import (
 
 	"statistics/internal/db"
 	"statistics/internal/kafka"
-	pb "statistics/internal/proto"
+	pb "statistics/internal/pb"
 	"statistics/internal/service"
 
 	"github.com/joho/godotenv"

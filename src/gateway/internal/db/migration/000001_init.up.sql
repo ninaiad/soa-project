@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS users (
-    id serial PRIMARY KEY,
+    id bigserial PRIMARY KEY,
     time_created timestamp NOT NULL,
     time_updated timestamp NOT NULL,
     username varchar(255) NOT NULL UNIQUE,

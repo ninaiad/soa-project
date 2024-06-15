@@ -30,16 +30,18 @@ func CreateKafkaService(p *kafka.Producer, cfg KafkaConfig, ch chan kafka.Event)
 	return &KafkaService{producer: p, cfg: cfg, eventCh: ch}
 }
 
-func (k *KafkaService) AddEvent(postId int64, authorId int64, eventType EventType) error {
+func (k *KafkaService) AddEvent(postId, authorId, actorId int64, eventType EventType) error {
 	payload, err := json.Marshal(map[string]interface{}{
-		"post":      postId,
-		"author":    authorId,
+		"post_id":   postId,
+		"author_id": authorId,
+		"actor_id":  actorId,
 		"event":     eventType,
 		"timestamp": time.Now().Unix(),
 	})
 	if err != nil {
 		return err
 	}
+
 	msg := &kafka.Message{
 		Value:          payload,
 		TopicPartition: kafka.TopicPartition{Topic: &k.cfg.KafkaTopic, Partition: kafka.PartitionAny},

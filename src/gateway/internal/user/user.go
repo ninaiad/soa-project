@@ -1,7 +1,7 @@
 package user
 
 type User struct {
-	Id          int    `json:"-" db:"id"`
+	Id          int64  `json:"-" db:"id"`
 	TimeCreated string `json:"time_created"`
 	TimeUpdated string `json:"time_updated"`
 
@@ -16,6 +16,7 @@ type User struct {
 }
 
 type UserPublic struct {
+	Username string `json:"username"`
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`
 	Birthday string `json:"birthday"`

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	pb "posts/internal/pb"
 	"posts/internal/post"
-	pb "posts/internal/proto"
 	"posts/internal/service"
 
 	"github.com/stretchr/testify/assert"
@@ -63,8 +63,8 @@ func TestGetPageOfPosts(t *testing.T) {
 		PageSize: 2,
 	}
 	posts := &[]post.Post{
-		{Txt: "Post 1", TimeUpdated: time.Now().Format(time.RFC3339)},
-		{Txt: "Post 2", TimeUpdated: time.Now().Format(time.RFC3339)},
+		{Text: "Post 1", TimeUpdated: time.Now().Format(time.RFC3339)},
+		{Text: "Post 2", TimeUpdated: time.Now().Format(time.RFC3339)},
 	}
 	db.On("GetPageOfPosts", req.AuthorId, req.PageNum, req.PageSize).Return(posts, nil)
 
@@ -77,8 +77,8 @@ func TestGetPageOfPosts(t *testing.T) {
 }
 
 type postExt struct {
-	PostId      int32
-	AuthorId    int32
+	PostId      int64
+	AuthorId    int64
 	Text        string
 	TimeUpdated string
 }
@@ -88,8 +88,8 @@ type MockPostsDatabase struct {
 	posts []postExt
 }
 
-func (m *MockPostsDatabase) CreatePost(authorId int32, text string) (int32, error) {
-	postId := int32(len(m.posts) + 1)
+func (m *MockPostsDatabase) CreatePost(authorId int64, text string) (int64, error) {
+	postId := int64(len(m.posts) + 1)
 	m.posts = append(m.posts,
 		postExt{
 			PostId:      postId,
@@ -100,7 +100,7 @@ func (m *MockPostsDatabase) CreatePost(authorId int32, text string) (int32, erro
 	return postId, nil
 }
 
-func (m *MockPostsDatabase) UpdatePost(authorId, postId int32, text string) error {
+func (m *MockPostsDatabase) UpdatePost(authorId, postId int64, text string) error {
 	for i, p := range m.posts {
 		if p.PostId == postId && p.AuthorId == authorId {
 			m.posts[i] = postExt{
@@ -115,7 +115,7 @@ func (m *MockPostsDatabase) UpdatePost(authorId, postId int32, text string) erro
 	return fmt.Errorf("Not found")
 }
 
-func (m *MockPostsDatabase) DeletePost(authorId, postId int32) error {
+func (m *MockPostsDatabase) DeletePost(authorId, postId int64) error {
 	toDelete := -1
 	for i, p := range m.posts {
 		if p.PostId == postId && p.AuthorId == authorId {
@@ -137,17 +137,18 @@ func (m *MockPostsDatabase) DeletePost(authorId, postId int32) error {
 	return nil
 }
 
-func (m *MockPostsDatabase) GetPost(authorId, postId int32) (*post.Post, error) {
+func (m *MockPostsDatabase) GetPost(authorId, postId int64) (*post.Post, error) {
 	for _, p := range m.posts {
 		if p.PostId == postId && p.AuthorId == authorId {
-			return &post.Post{Txt: p.Text, TimeUpdated: p.TimeUpdated}, nil
+			return &post.Post{Text: p.Text, TimeUpdated: p.TimeUpdated}, nil
 		}
 	}
 
 	return nil, fmt.Errorf("Not found")
 }
 
-func (m *MockPostsDatabase) GetPageOfPosts(Id, pageNum, pageSize int32) (*[]post.Post, error) {
+func (m *MockPostsDatabase) GetPageOfPosts(
+	Id int64, pageNum, pageSize int32) (*[]post.Post, error) {
 	args := m.Called(Id, pageNum, pageSize)
 	return args.Get(0).(*[]post.Post), args.Error(1)
 }

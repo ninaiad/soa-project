@@ -23,7 +23,7 @@ const (
 
 type tokenClaims struct {
 	jwt.RegisteredClaims
-	UserId int `json:"user_id"`
+	UserId int64 `json:"user_id"`
 }
 
 type AuthService struct {
@@ -34,7 +34,7 @@ func CreateAuthService(db db.Authorization) *AuthService {
 	return &AuthService{db: db}
 }
 
-func (a *AuthService) CreateUser(user user.User) (int, error) {
+func (a *AuthService) CreateUser(user user.User) (int64, error) {
 	user.Password = generatePasswordHash(user.Password)
 	user.TimeCreated = time.Now().Format(time.RFC3339)
 	user.TimeUpdated = user.TimeCreated
@@ -45,11 +45,15 @@ func (a *AuthService) CreateUser(user user.User) (int, error) {
 	return a.db.CreateUser(user)
 }
 
-func (a *AuthService) GetUserLogin(userId int) (user.User, error) {
-	return a.db.GetUserLogin(userId)
+func (a *AuthService) GetUsername(userId int64) (string, error) {
+	if u, err := a.db.GetUserData(userId); err == nil {
+		return u.Username, nil
+	} else {
+		return "", err
+	}
 }
 
-func (a *AuthService) UpdateUser(userId int, update user.UserPublic) (user.UserPublic, error) {
+func (a *AuthService) UpdateUser(userId int64, update user.UserPublic) (user.UserPublic, error) {
 	userData, err := a.db.GetUserData(userId)
 	if err != nil {
 		return user.UserPublic{}, err
@@ -74,8 +78,8 @@ func (a *AuthService) UpdateUser(userId int, update user.UserPublic) (user.UserP
 	return update, a.db.UpdateUser(userId, update, time.Now().Format(time.RFC3339))
 }
 
-func (a *AuthService) GenerateToken(username, password string) (string, int, error) {
-	user, err := a.db.GetUser(username, generatePasswordHash(password))
+func (a *AuthService) GenerateToken(username, password string) (string, int64, error) {
+	userId, err := a.db.GetUserId(username, generatePasswordHash(password))
 	if err != nil {
 		return "", 0, err
 	}
@@ -86,14 +90,14 @@ func (a *AuthService) GenerateToken(username, password string) (string, int, err
 			ExpiresAt: jwt.NewNumericDate(tNow.Add(tokenTTL)),
 			IssuedAt:  jwt.NewNumericDate(tNow),
 		},
-		user.Id,
+		userId,
 	})
 
 	tokenS, err := token.SignedString([]byte(signingKey))
-	return tokenS, user.Id, err
+	return tokenS, userId, err
 }
 
-func (a *AuthService) ParseToken(accessToken string) (int, error) {
+func (a *AuthService) ParseToken(accessToken string) (int64, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &tokenClaims{}, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")

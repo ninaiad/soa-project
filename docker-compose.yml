@@ -31,7 +31,7 @@ services:
       POSTGRES_PASSWORD: ${MAIN_DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ${GATEWAY_DB_VOLUME:?Gateway db volume not set}:/var/lib/postgresql/data:rw
+      - ./src/gateway/.database/postgres/data:/var/lib/postgresql/data:rw
     user: 501:20
     ports:
       - 5432:5432
@@ -64,7 +64,7 @@ services:
       POSTGRES_PASSWORD: ${POSTS_DB_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-    - ${POSTS_DB_VOLUME:?Posts db volume not set}:/var/lib/postgresql/data:rw
+    - ./src/posts/.database/postgres/data:/var/lib/postgresql/data:rw
     user: 501:20
     ports:
       - 5433:5432
@@ -103,7 +103,7 @@ services:
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
       - CLICKHOUSE_DB=statistics
     volumes:
-      - ${CLICKHOUSE_DB_VOLUME:?Clickhouse volume path not set}:/var/lib/clickhouse/
+      - ./src/statistics/.database/:/var/lib/clickhouse/
     ports:
       - 8123:8123
       - 9000:9000

@@ -2,8 +2,8 @@ package service
 
 import (
 	"gateway/internal/db"
-	posts_pb "gateway/internal/service/posts_proto"
-	stat_pb "gateway/internal/service/statistics_proto"
+	posts_pb "gateway/internal/service/posts"
+	stat_pb "gateway/internal/service/statistics"
 	"gateway/internal/user"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -11,15 +11,15 @@ import (
 )
 
 type Authorization interface {
-	CreateUser(user user.User) (int, error)
-	UpdateUser(userId int, update user.UserPublic) (user.UserPublic, error)
-	GetUserLogin(userId int) (user.User, error)
-	GenerateToken(username, password string) (string, int, error)
-	ParseToken(token string) (int, error)
+	CreateUser(user user.User) (int64, error)
+	UpdateUser(userId int64, update user.UserPublic) (user.UserPublic, error)
+	GetUsername(userId int64) (string, error)
+	GenerateToken(username, password string) (string, int64, error)
+	ParseToken(token string) (int64, error)
 }
 
 type Statistics interface {
-	AddEvent(postId int64, authorId int64, eventType EventType) error
+	AddEvent(postId, authorId, actorId int64, eventType EventType) error
 }
 
 type Service struct {

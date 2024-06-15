@@ -21,24 +21,29 @@ type Config struct {
 	KafkaCfg    kafka.Config
 }
 
-const createTableQueue = `CREATE TABLE IF NOT EXISTS queue (
-    post UInt64,
-    author UInt64,
-	event Enum('like', 'view'),
+const createTableQueue = `
+	CREATE TABLE IF NOT EXISTS queue (
+		post_id Int64,
+    author_id Int64,
+		actor_id Int64,
+	  event Enum('like', 'view'),
     timestamp UInt64,
-) ENGINE = Kafka('%s', '%s', '%s', '%s');`
+	) ENGINE = Kafka('%s', '%s', '%s', '%s');`
 
-const createTableEvents = `CREATE TABLE IF NOT EXISTS events (
-    day Date,
-    post UInt64,
-    author UInt64,
-	event Enum('like', 'view'),
-	total UInt64
-) ENGINE = SummingMergeTree(total) ORDER BY (day, post, author, event);`
+const createTableEvents = `
+	CREATE TABLE IF NOT EXISTS events (
+		post_id Int64,
+		author_id Int64,
+		actor_id Int64,
+		event Enum('like', 'view'),
+		timestamp UInt64,
+	) ENGINE = ReplacingMergeTree
+	ORDER BY (post_id, author_id, actor_id, event);`
 
-const createView = `CREATE MATERIALIZED VIEW IF NOT EXISTS consumer TO events
-	AS SELECT toDate(toDateTime(timestamp)) AS day, post, author, event, count() as total
-	FROM queue GROUP BY day, post, author, event;`
+const createView = `
+	CREATE MATERIALIZED VIEW IF NOT EXISTS consumer TO events AS 
+		SELECT post_id, author_id, actor_id, event, timestamp
+		FROM queue;`
 
 func NewClickhouseDB(cfg Config) (driver.Conn, error) {
 	conn, err := clickhouse.Open(&clickhouse.Options{
@@ -81,17 +86,17 @@ type StatisticsClickhouse struct {
 }
 
 func (db *StatisticsClickhouse) GetPostStatistics(
-	ctx context.Context, postId uint64) (*statistics.Post, error) {
+	ctx context.Context, postId int64) (*statistics.Post, error) {
 	var dbPost statistics.Post
-	query := fmt.Sprintf(
-		`SELECT
-			post,
-			author,
-			sum(multiIf(event = 'like', total, 0)) AS total_likes,
-			sum(multiIf(event = 'view', total, 0)) AS total_views
+	query := fmt.Sprintf(`
+		SELECT
+			post_id,
+			author_id,
+			uniqExact(if(event = 'like', actor_id, NULL)) AS num_likes,
+			uniqExact(if(event = 'view', actor_id, NULL)) AS num_views
 		FROM events
-		WHERE post = %v
-		GROUP BY post, author`,
+		WHERE post_id = %v
+		GROUP BY post_id, author_id`,
 		postId)
 
 	if err := db.conn.QueryRow(ctx, query).ScanStruct(&dbPost); err != nil {
@@ -104,15 +109,15 @@ func (db *StatisticsClickhouse) GetPostStatistics(
 func (db *StatisticsClickhouse) GetTopKPosts(
 	ctx context.Context, eventType string, k uint64) ([]statistics.Post, error) {
 	var posts []statistics.Post
-	query := fmt.Sprintf(
-		`SELECT
-			post,
-			author,
-			sum(multiIf(event = 'like', total, 0)) AS total_likes,
-			sum(multiIf(event = 'view', total, 0)) AS total_views
+	query := fmt.Sprintf(`
+		SELECT
+			post_id,
+			author_id,
+			uniqExact(if(event = 'like', actor_id, NULL)) AS num_likes,
+			uniqExact(if(event = 'view', actor_id, NULL)) AS num_views 
 		FROM events
-		GROUP BY post, author
-		ORDER BY multiIf('%v' = 'like', total_likes, total_views) DESC
+		GROUP BY post_id, author_id
+		ORDER BY if('%v' = 'like', num_likes, num_views) DESC
 		LIMIT %v`,
 		eventType, k)
 
@@ -126,14 +131,25 @@ func (db *StatisticsClickhouse) GetTopKPosts(
 func (db *StatisticsClickhouse) GetTopKUsers(
 	ctx context.Context, eventType string, k uint64) ([]statistics.User, error) {
 	var users []statistics.User
-	query := fmt.Sprintf(
-		`SELECT
-			author,
-			sum(multiIf(event = 'like', total, 0)) AS total_likes,
-			sum(multiIf(event = 'view', total, 0)) AS total_views
-		FROM events
-		GROUP BY author
-		ORDER BY multiIf('%v' = 'like', total_likes, total_views) DESC
+	query := fmt.Sprintf(`
+		SELECT
+			author_id,
+			sum(num_likes) AS num_likes,
+			sum(num_views) AS num_views
+		FROM (
+			SELECT
+				author_id,
+				if(event = 'like', uniqExact(post_id, actor_id), 0) AS num_likes,
+				if(event = 'view', uniqExact(post_id, actor_id), 0) AS num_views
+			FROM (
+				SELECT author_id, post_id, actor_id, event
+				FROM events
+				GROUP BY author_id, actor_id, post_id, event
+			)
+			GROUP BY author_id, event
+		)
+		GROUP BY author_id
+		ORDER BY if('%v' = 'like', num_likes, num_views) DESC
 		LIMIT %v`,
 		eventType, k)
 

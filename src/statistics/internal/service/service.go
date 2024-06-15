@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"statistics/internal/db"
-	pb "statistics/internal/proto"
+	pb "statistics/internal/pb"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -20,16 +20,16 @@ func NewStatisticsService(db db.StatisticsDatabase) *StatisticsService {
 
 func (s *StatisticsService) GetPostStatistics(
 	ctx context.Context, in *pb.PostId) (*pb.PostStatistics, error) {
-	postDb, err := s.db.GetPostStatistics(ctx, uint64(in.GetPostId()))
+	postDb, err := s.db.GetPostStatistics(ctx, in.GetPostId())
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.PostStatistics{
-		PostId:   int32(postDb.PostId),
-		AuthorId: int32(postDb.AuthorId),
-		NumLikes: postDb.TotalLikes,
-		NumViews: postDb.TotalViews,
+		PostId:   postDb.PostId,
+		AuthorId: postDb.AuthorId,
+		NumLikes: postDb.NumLikes,
+		NumViews: postDb.NumViews,
 	}, err
 }
 
@@ -51,10 +51,10 @@ func (s *StatisticsService) GetTopKPosts(
 	for _, p := range postsDb {
 		posts = append(posts,
 			&pb.PostStatistics{
-				PostId:   int32(p.PostId),
-				AuthorId: int32(p.AuthorId),
-				NumLikes: p.TotalLikes,
-				NumViews: p.TotalViews,
+				PostId:   p.PostId,
+				AuthorId: p.AuthorId,
+				NumLikes: p.NumLikes,
+				NumViews: p.NumViews,
 			})
 	}
 
@@ -75,13 +75,13 @@ func (s *StatisticsService) GetTopKUsers(
 		return nil, err
 	}
 
-	users := []*pb.UsersStatistics{}
+	users := []*pb.UserStatistics{}
 	for _, u := range usersDb {
 		users = append(users,
-			&pb.UsersStatistics{
-				AuthorId: int32(u.AuthorId),
-				NumLikes: u.TotalLikes,
-				NumViews: u.TotalViews,
+			&pb.UserStatistics{
+				Id:       u.Id,
+				NumLikes: u.NumLikes,
+				NumViews: u.NumViews,
 			})
 	}
 

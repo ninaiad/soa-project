@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v4.25.2
-// source: proto/posts.proto
+// source: posts.proto
 
-package proto
+package posts_proto
 
 import (
 	context "context"
@@ -246,5 +246,5 @@ var PostsServer_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/posts.proto",
+	Metadata: "posts.proto",
 }

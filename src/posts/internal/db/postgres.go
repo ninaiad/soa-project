@@ -49,8 +49,7 @@ func NewPostgresDB(cfg Config) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -70,41 +69,59 @@ func NewPostsPostgres(db *sqlx.DB) *PostsPostgres {
 	return &PostsPostgres{db: db}
 }
 
-func (p *PostsPostgres) CreatePost(userId int32, text string) (int32, error) {
-	var postId int32
-	q := fmt.Sprintf(
-		"INSERT INTO %s (timeUpdated, user_id, txt) values ($1, $2, $3) RETURNING id",
+func (p *PostsPostgres) CreatePost(userId int64, text string) (int64, error) {
+	var postId int64
+	q := fmt.Sprintf(`
+		INSERT INTO %s (time_updated, user_id, txt) values ($1, $2, $3) 
+		RETURNING id`,
 		postsTable)
 	row := p.db.QueryRow(q, time.Now().Format(time.RFC3339), userId, text)
 	err := row.Scan(&postId)
 	return postId, err
 }
 
-func (p *PostsPostgres) UpdatePost(userId, postId int32, text string) error {
-	q := fmt.Sprintf("UPDATE %s SET timeUpdated=$1, txt=$2  WHERE user_id=$3 AND id=$4", postsTable)
+func (p *PostsPostgres) UpdatePost(userId, postId int64, text string) error {
+	q := fmt.Sprintf(`
+		UPDATE %s SET time_updated=$1, txt=$2
+		WHERE user_id=$3 AND id=$4`,
+		postsTable)
 	_, err := p.db.Exec(q, time.Now().Format(time.RFC3339), text, userId, postId)
 	return err
 }
 
-func (p *PostsPostgres) DeletePost(userId, postId int32) error {
-	q := fmt.Sprintf("DELETE FROM %s WHERE user_id=$1 AND id=$2", postsTable)
+func (p *PostsPostgres) DeletePost(userId, postId int64) error {
+	q := fmt.Sprintf(`
+		DELETE FROM %s
+		WHERE user_id=$1 AND id=$2`,
+		postsTable)
 	_, err := p.db.Exec(q, userId, postId)
 	return err
 }
 
-func (p *PostsPostgres) GetPost(userId, postId int32) (*post.Post, error) {
+func (p *PostsPostgres) GetPost(userId, postId int64) (*post.Post, error) {
 	var post post.Post
-	q := fmt.Sprintf("SELECT txt, timeUpdated FROM %s WHERE user_id=$1 AND id=$2", postsTable)
+	q := fmt.Sprintf(`
+		SELECT id, txt as text, time_updated as timeUpdated
+		FROM %s
+		WHERE user_id=$1 AND id=$2`,
+		postsTable)
 	err := p.db.Get(&post, q, userId, postId)
 	return &post, err
 }
 
-func (p *PostsPostgres) GetPageOfPosts(userId, pageNum, pageSize int32) (*[]post.Post, error) {
+func (p *PostsPostgres) GetPageOfPosts(
+	userId int64, pageNum, pageSize int32) (*[]post.Post, error) {
 	posts := []post.Post{}
-	q := fmt.Sprintf(
-		`SELECT s.* FROM (SELECT txt, timeUpdated FROM %s WHERE user_id=$1) s 
-			ORDER BY s.timeUpdated DESC 
-			OFFSET $2 LIMIT $3`,
+	q := fmt.Sprintf(`
+		SELECT s.*
+		FROM (
+			SELECT id, txt as text, time_updated as timeUpdated
+			FROM %s
+			WHERE user_id=$1
+		) s 
+		ORDER BY s.timeUpdated DESC 
+		OFFSET $2
+		LIMIT $3`,
 		postsTable)
 	err := p.db.Select(&posts, q, userId, (pageNum-1)*pageSize, pageSize)
 	return &posts, err

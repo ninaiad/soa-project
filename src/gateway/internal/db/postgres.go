@@ -48,8 +48,7 @@ func NewPostgresDB(cfg Config) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
-	if err != nil {
+	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
@@ -57,7 +56,7 @@ func NewPostgresDB(cfg Config) (*sqlx.DB, error) {
 		return nil, err
 	}
 
-	log.Println("database is up and the migrations complete.")
+	log.Println(`database is up and the migrations complete.`)
 	return db, nil
 }
 
@@ -69,13 +68,13 @@ func NewAuthPostgres(db *sqlx.DB) *AuthPostgres {
 	return &AuthPostgres{db: db}
 }
 
-func (a *AuthPostgres) CreateUser(user user.User) (int, error) {
-	var id int
-	query := fmt.Sprintf(
-		`INSERT INTO %s
+func (a *AuthPostgres) CreateUser(user user.User) (int64, error) {
+	var id int64
+	query := fmt.Sprintf(`
+		INSERT INTO %s
 			(time_created, time_updated, username, password_hash, name, surname, birthday, email, phone)
 			values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-			RETURNING id`,
+		RETURNING id`,
 		usersTable)
 	row := a.db.QueryRow(query,
 		user.TimeCreated,
@@ -96,40 +95,32 @@ func (a *AuthPostgres) CreateUser(user user.User) (int, error) {
 	return id, nil
 }
 
-func (a *AuthPostgres) GetUser(username, password string) (user.User, error) {
-	var user user.User
+func (a *AuthPostgres) GetUserId(username, password string) (int64, error) {
+	var userId int64
 	query := fmt.Sprintf(
-		"SELECT id FROM %s WHERE username=$1 AND password_hash=$2",
+		`SELECT id FROM %s WHERE username=$1 AND password_hash=$2`,
 		usersTable)
-	err := a.db.Get(&user, query, username, password)
-	return user, err
+	err := a.db.Get(&userId, query, username, password)
+	return userId, err
 }
 
-func (a *AuthPostgres) GetUserLogin(userId int) (user.User, error) {
-	var user user.User
-	query := fmt.Sprintf(
-		"SELECT username FROM %s WHERE id=$1",
-		usersTable)
-	err := a.db.Get(&user, query, userId)
-	return user, err
-}
-
-func (a *AuthPostgres) GetUserData(userId int) (user.UserPublic, error) {
+func (a *AuthPostgres) GetUserData(userId int64) (user.UserPublic, error) {
 	user := user.UserPublic{}
 	query := fmt.Sprintf(
-		"SELECT name, surname, birthday, email, phone FROM %s WHERE id = $1",
+		`SELECT username, name, surname, birthday, email, phone FROM %s WHERE id = $1`,
 		usersTable)
 	err := a.db.Get(&user, query, userId)
 	return user, err
 }
 
-func (a *AuthPostgres) UpdateUser(userId int, update user.UserPublic, timeUpdated string) error {
-	query := fmt.Sprintf(
-		`UPDATE %s ul
-			SET name=$1, surname=$2, birthday=$3, email=$4, phone=$5, time_updated=$6
-			WHERE ul.id = $7`,
+func (a *AuthPostgres) UpdateUser(userId int64, update user.UserPublic, timeUpdated string) error {
+	query := fmt.Sprintf(`
+		UPDATE %s ul
+			SET username=$1, name=$2, surname=$3, birthday=$4, email=$5, phone=$6, time_updated=$7
+		WHERE ul.id = $8`,
 		usersTable)
 	_, err := a.db.Exec(query,
+		update.Username,
 		update.Name,
 		update.Surname,
 		update.Birthday,

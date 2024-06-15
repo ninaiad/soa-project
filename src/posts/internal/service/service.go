@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"posts/internal/db"
-	pb "posts/internal/proto"
+	pb "posts/internal/pb"
 
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -45,7 +45,7 @@ func (p *PostsService) GetPost(_ context.Context, r *pb.PostIdRequest) (*pb.Post
 	}
 
 	t, err := time.Parse(time.RFC3339, post.TimeUpdated)
-	return &pb.Post{Text: post.Txt, TimeUpdated: timestamppb.New(t)}, err
+	return &pb.Post{Id: post.Id, Text: post.Text, TimeUpdated: timestamppb.New(t)}, err
 }
 
 func (p *PostsService) GetPageOfPosts(
@@ -62,7 +62,11 @@ func (p *PostsService) GetPageOfPosts(
 			return nil, err
 		}
 
-		pbPosts[i] = &pb.Post{Text: (*posts)[i].Txt, TimeUpdated: timestamppb.New(t)}
+		pbPosts[i] = &pb.Post{
+			Id:          (*posts)[i].Id,
+			Text:        (*posts)[i].Text,
+			TimeUpdated: timestamppb.New(t),
+		}
 	}
 
 	return &pb.GetPageOfPostsResponse{

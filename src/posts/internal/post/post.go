@@ -1,6 +1,7 @@
 package post
 
 type Post struct {
-	Txt         string
+	Id          int64
+	Text        string
 	TimeUpdated string
 }

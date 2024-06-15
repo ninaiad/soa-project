@@ -7,11 +7,11 @@ import (
 )
 
 type PostsDatabase interface {
-	CreatePost(userId int32, text string) (int32, error)
-	UpdatePost(userId, postId int32, text string) error
-	DeletePost(userId, postId int32) error
-	GetPost(userId, postId int32) (*post.Post, error)
-	GetPageOfPosts(userId, pageNum, pageSize int32) (*[]post.Post, error)
+	CreatePost(userId int64, text string) (int64, error)
+	UpdatePost(userId, postId int64, text string) error
+	DeletePost(userId, postId int64) error
+	GetPost(userId, postId int64) (*post.Post, error)
+	GetPageOfPosts(userId int64, pageNum, pageSize int32) (*[]post.Post, error)
 }
 
 type Database struct {

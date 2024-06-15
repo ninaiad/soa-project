@@ -6,14 +6,14 @@ import (
 	"strconv"
 
 	"gateway/internal/service"
-	pb "gateway/internal/service/statistics_proto"
+	pb "gateway/internal/service/statistics"
 
 	"github.com/gin-gonic/gin"
 )
 
 type postStatistics struct {
-	Id          int32  `json:"id"`
-	AuthorId    int32  `json:"author_id"`
+	Id          int64  `json:"id"`
+	AuthorId    int64  `json:"author_id"`
 	AuthorLogin string `json:"author_login"`
 	NumLikes    uint64 `json:"num_likes"`
 	NumViews    uint64 `json:"num_views"`
@@ -24,7 +24,7 @@ type topPosts struct {
 }
 
 type userStatistics struct {
-	Id       int32  `json:"id"`
+	Id       int64  `json:"id"`
 	Login    string `json:"login"`
 	NumLikes uint64 `json:"num_likes"`
 	NumViews uint64 `json:"num_views"`
@@ -35,6 +35,12 @@ type topUsers struct {
 }
 
 func (h *Handler) viewPost(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
@@ -42,7 +48,7 @@ func (h *Handler) viewPost(c *gin.Context) {
 		return
 	}
 
-	authorId, err := strconv.ParseInt(authorIdS, 10, 64)
+	authorId, err = strconv.ParseInt(authorIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 		return
@@ -59,7 +65,7 @@ func (h *Handler) viewPost(c *gin.Context) {
 		return
 	}
 
-	if err = h.service.AddEvent(postId, authorId, service.View); err != nil {
+	if err = h.service.AddEvent(postId, authorId, userId, service.View); err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error adding view")
 		return
@@ -70,6 +76,12 @@ func (h *Handler) viewPost(c *gin.Context) {
 }
 
 func (h *Handler) likePost(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
@@ -77,7 +89,7 @@ func (h *Handler) likePost(c *gin.Context) {
 		return
 	}
 
-	authorId, err := strconv.ParseInt(authorIdS, 10, 64)
+	authorId, err = strconv.ParseInt(authorIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 		return
@@ -94,7 +106,7 @@ func (h *Handler) likePost(c *gin.Context) {
 		return
 	}
 
-	if err = h.service.AddEvent(postId, authorId, service.Like); err != nil {
+	if err = h.service.AddEvent(postId, authorId, userId, service.Like); err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error adding like")
 		return
@@ -111,20 +123,20 @@ func (h *Handler) getPostStatistics(c *gin.Context) {
 		return
 	}
 
-	postId, err := strconv.Atoi(postIdS)
+	postId, err := strconv.ParseInt(postIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "id parameter not a number")
 		return
 	}
 
-	s, err := h.service.GetPostStatistics(c.Request.Context(), &pb.PostId{PostId: int32(postId)})
+	s, err := h.service.GetPostStatistics(c.Request.Context(), &pb.PostId{PostId: postId})
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting post statistics")
 		return
 	}
 
-	userData, err := h.service.GetUserLogin(int(s.GetAuthorId()))
+	username, err := h.service.GetUsername(s.GetAuthorId())
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting posts statistics")
@@ -134,9 +146,9 @@ func (h *Handler) getPostStatistics(c *gin.Context) {
 	log.Println("successful getPostStatistics request")
 	c.JSON(http.StatusOK,
 		postStatistics{
-			Id:          int32(postId),
+			Id:          postId,
 			AuthorId:    s.GetAuthorId(),
-			AuthorLogin: userData.Username,
+			AuthorLogin: username,
 			NumLikes:    s.GetNumLikes(),
 			NumViews:    s.GetNumViews(),
 		})
@@ -180,7 +192,7 @@ func (h *Handler) getTopKPosts(c *gin.Context) {
 
 	posts := []postStatistics{}
 	for _, p := range res.Posts {
-		userData, err := h.service.GetUserLogin(int(p.GetAuthorId()))
+		username, err := h.service.GetUsername(p.GetAuthorId())
 		if err != nil {
 			log.Println(err.Error())
 			newErrorResponse(c, http.StatusInternalServerError, "error getting posts statistics")
@@ -191,7 +203,7 @@ func (h *Handler) getTopKPosts(c *gin.Context) {
 			postStatistics{
 				Id:          p.GetPostId(),
 				AuthorId:    p.GetAuthorId(),
-				AuthorLogin: userData.Username,
+				AuthorLogin: username,
 				NumLikes:    p.GetNumLikes(),
 				NumViews:    p.GetNumViews(),
 			})
@@ -239,7 +251,7 @@ func (h *Handler) getTopKUsers(c *gin.Context) {
 
 	users := []userStatistics{}
 	for _, u := range res.Users {
-		userData, err := h.service.GetUserLogin(int(u.GetAuthorId()))
+		username, err := h.service.GetUsername(u.Id)
 		if err != nil {
 			log.Println(err.Error())
 			newErrorResponse(c, http.StatusInternalServerError, "error getting users statistics")
@@ -248,8 +260,8 @@ func (h *Handler) getTopKUsers(c *gin.Context) {
 
 		users = append(users,
 			userStatistics{
-				Id:       u.GetAuthorId(),
-				Login:    userData.Username,
+				Id:       u.GetId(),
+				Login:    username,
 				NumLikes: u.GetNumLikes(),
 				NumViews: u.GetNumViews(),
 			})

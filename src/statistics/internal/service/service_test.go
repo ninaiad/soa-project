@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	pb "statistics/internal/proto"
+	pb "statistics/internal/pb"
 	. "statistics/internal/service"
 	"statistics/internal/statistics"
 
@@ -19,19 +19,19 @@ func TestGetPostStatistics(t *testing.T) {
 	ctx := context.Background()
 	req := &pb.PostId{PostId: 1}
 	postStats := &statistics.Post{
-		PostId:     1,
-		AuthorId:   1,
-		TotalLikes: 10,
-		TotalViews: 100,
+		PostId:   1,
+		AuthorId: 1,
+		NumLikes: 10,
+		NumViews: 100,
 	}
-	db.On("GetPostStatistics", ctx, uint64(req.GetPostId())).Return(postStats, nil)
+	db.On("GetPostStatistics", ctx, req.GetPostId()).Return(postStats, nil)
 
 	res, err := svc.GetPostStatistics(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, int32(postStats.PostId), res.PostId)
-	assert.Equal(t, int32(postStats.AuthorId), res.AuthorId)
-	assert.Equal(t, postStats.TotalLikes, res.NumLikes)
-	assert.Equal(t, postStats.TotalViews, res.NumViews)
+	assert.Equal(t, postStats.PostId, res.PostId)
+	assert.Equal(t, postStats.AuthorId, res.AuthorId)
+	assert.Equal(t, postStats.NumLikes, res.NumLikes)
+	assert.Equal(t, postStats.NumViews, res.NumViews)
 	db.AssertExpectations(t)
 }
 
@@ -42,8 +42,8 @@ func TestGetTopKPosts(t *testing.T) {
 	ctx := context.Background()
 	req := &pb.TopKRequest{K: 2, Event: pb.EventType_LIKE}
 	postsStats := []statistics.Post{
-		{PostId: 1, AuthorId: 1, TotalLikes: 10, TotalViews: 100},
-		{PostId: 2, AuthorId: 2, TotalLikes: 15, TotalViews: 150},
+		{PostId: 1, AuthorId: 1, NumLikes: 10, NumViews: 100},
+		{PostId: 2, AuthorId: 2, NumLikes: 15, NumViews: 150},
 	}
 	db.On("GetTopKPosts", ctx, "like", req.GetK()).Return(postsStats, nil)
 
@@ -51,10 +51,10 @@ func TestGetTopKPosts(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res.Posts, len(postsStats))
 	for i, post := range postsStats {
-		assert.Equal(t, int32(post.PostId), res.Posts[i].PostId)
-		assert.Equal(t, int32(post.AuthorId), res.Posts[i].AuthorId)
-		assert.Equal(t, post.TotalLikes, res.Posts[i].NumLikes)
-		assert.Equal(t, post.TotalViews, res.Posts[i].NumViews)
+		assert.Equal(t, post.PostId, res.Posts[i].PostId)
+		assert.Equal(t, post.AuthorId, res.Posts[i].AuthorId)
+		assert.Equal(t, post.NumLikes, res.Posts[i].NumLikes)
+		assert.Equal(t, post.NumViews, res.Posts[i].NumViews)
 	}
 	db.AssertExpectations(t)
 }
@@ -66,8 +66,8 @@ func TestGetTopKUsers(t *testing.T) {
 	ctx := context.Background()
 	req := &pb.TopKRequest{K: 2, Event: pb.EventType_VIEW}
 	usersStats := []statistics.User{
-		{AuthorId: 1, TotalLikes: 10, TotalViews: 100},
-		{AuthorId: 2, TotalLikes: 15, TotalViews: 150},
+		{Id: 1, NumLikes: 10, NumViews: 100},
+		{Id: 2, NumLikes: 15, NumViews: 150},
 	}
 	db.On("GetTopKUsers", ctx, "view", req.GetK()).Return(usersStats, nil)
 
@@ -75,9 +75,9 @@ func TestGetTopKUsers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res.Users, len(usersStats))
 	for i, user := range usersStats {
-		assert.Equal(t, int32(user.AuthorId), res.Users[i].AuthorId)
-		assert.Equal(t, user.TotalLikes, res.Users[i].NumLikes)
-		assert.Equal(t, user.TotalViews, res.Users[i].NumViews)
+		assert.Equal(t, user.Id, res.Users[i].Id)
+		assert.Equal(t, user.NumLikes, res.Users[i].NumLikes)
+		assert.Equal(t, user.NumViews, res.Users[i].NumViews)
 	}
 	db.AssertExpectations(t)
 }
@@ -87,7 +87,7 @@ type MockStatisticsDB struct {
 }
 
 func (m *MockStatisticsDB) GetPostStatistics(
-	ctx context.Context, postId uint64) (*statistics.Post, error) {
+	ctx context.Context, postId int64) (*statistics.Post, error) {
 	args := m.Called(ctx, postId)
 	return args.Get(0).(*statistics.Post), args.Error(1)
 }

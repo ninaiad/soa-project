@@ -40,19 +40,23 @@ func TestCreateUser(t *testing.T) {
 			id, err := a.CreateUser(tc)
 			assert.NoError(t, err)
 			assert.Equal(t, id, mockDB.users[i].Id)
-			u, err := a.GetUserLogin(id)
+			username, err := a.GetUsername(id)
 			assert.NoError(t, err)
-			assert.Contains(t, mockDB.users, u)
+			assert.Equal(t, username, tc.Username)
+			contains := false
+			for _, u := range mockDB.users {
+				if u.Username == username {
+					contains = true
+					break
+				}
+			}
+			assert.True(t, contains)
 			pub, err := a.UpdateUser(id, user.UserPublic{Name: "new " + tc.Name})
 			assert.NoError(t, err)
 			assert.Equal(t, pub.Name, "new "+tc.Name)
 			assert.Equal(t, pub.Surname, tc.Surname)
 			assert.Equal(t, pub.Email, tc.Email)
 			assert.Equal(t, pub.Phone, tc.Phone)
-			uNew, err := a.GetUserLogin(id)
-			assert.NoError(t, err)
-			assert.Equal(t, uNew.Name, pub.Name)
-			assert.Equal(t, u.Phone, uNew.Phone)
 		})
 	}
 }
@@ -97,34 +101,26 @@ func TestToken(t *testing.T) {
 	})
 }
 
-func (db *MockDB) CreateUser(user user.User) (int, error) {
-	user.Id = len(db.users) + 1
+func (db *MockDB) CreateUser(user user.User) (int64, error) {
+	user.Id = int64(len(db.users) + 1)
 	db.users = append(db.users, user)
-	return len(db.users), nil
+	return int64(len(db.users)), nil
 }
 
-func (db *MockDB) GetUser(username, password string) (user.User, error) {
+func (db *MockDB) GetUserId(username, password string) (int64, error) {
 	for _, user := range db.users {
 		if user.Username == username && user.Password == password {
-			return user, nil
+			return user.Id, nil
 		}
 	}
-	return user.User{}, fmt.Errorf("Not found")
+	return -1, fmt.Errorf("Not found")
 }
 
-func (db *MockDB) GetUserLogin(userId int) (user.User, error) {
-	for _, user := range db.users {
-		if user.Id == userId {
-			return user, nil
-		}
-	}
-	return user.User{}, fmt.Errorf("Not found")
-}
-
-func (db *MockDB) GetUserData(userId int) (user.UserPublic, error) {
+func (db *MockDB) GetUserData(userId int64) (user.UserPublic, error) {
 	for _, u := range db.users {
 		if u.Id == userId {
 			return user.UserPublic{
+				Username: u.Username,
 				Name:     u.Name,
 				Surname:  u.Surname,
 				Birthday: u.Birthday,
@@ -137,7 +133,7 @@ func (db *MockDB) GetUserData(userId int) (user.UserPublic, error) {
 	return user.UserPublic{}, fmt.Errorf("Not found")
 }
 
-func (db *MockDB) UpdateUser(userId int, update user.UserPublic, timeUpdated string) error {
+func (db *MockDB) UpdateUser(userId int64, update user.UserPublic, timeUpdated string) error {
 	for i, u := range db.users {
 		if u.Id == userId {
 			db.users[i] = user.User{

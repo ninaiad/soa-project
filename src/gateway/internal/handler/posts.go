@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"gateway/internal/service/posts_proto"
+	"gateway/internal/service/posts"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,17 +17,18 @@ type postTextMsg struct {
 }
 
 type postIdMsg struct {
-	PostId int `json:"post_id"`
+	PostId int64 `json:"post_id"`
 }
 
 type postResponse struct {
+	Id          int64  `json:"id"`
 	Text        string `json:"text"`
 	TimeUpdated string `json:"time_updated"`
 }
 
 type postsByPageOutput struct {
-	PageNum  int            `json:"page_num"`
-	PageSize int            `json:"page_size"`
+	PageNum  int32          `json:"page_num"`
+	PageSize int32          `json:"page_size"`
 	Posts    []postResponse `json:"posts"`
 }
 
@@ -46,14 +47,14 @@ func (h *Handler) createPost(c *gin.Context) {
 
 	resp, err := h.service.CreatePost(
 		context.Background(),
-		&posts_proto.CreateRequest{AuthorId: int32(userId), Text: input.Text})
+		&posts_proto.CreateRequest{AuthorId: userId, Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	log.Println("successful createPost request")
-	c.JSON(http.StatusOK, postIdMsg{PostId: int(resp.PostId)})
+	c.JSON(http.StatusOK, postIdMsg{PostId: resp.PostId})
 }
 
 func (h *Handler) updatePost(c *gin.Context) {
@@ -69,7 +70,7 @@ func (h *Handler) updatePost(c *gin.Context) {
 		return
 	}
 
-	postId, err := strconv.Atoi(postIdS)
+	postId, err := strconv.ParseInt(postIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "id parameter not a number")
 		return
@@ -84,8 +85,8 @@ func (h *Handler) updatePost(c *gin.Context) {
 	_, err = h.service.UpdatePost(
 		context.Background(),
 		&posts_proto.UpdateRequest{
-			AuthorId: int32(userId),
-			PostId:   int32(postId),
+			AuthorId: userId,
+			PostId:   postId,
 			Text:     input.Text,
 		})
 	if err != nil {
@@ -110,7 +111,7 @@ func (h *Handler) deletePost(c *gin.Context) {
 		return
 	}
 
-	postId, err := strconv.Atoi(postIdS)
+	postId, err := strconv.ParseInt(postIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "id parameter not a number")
 		return
@@ -119,8 +120,8 @@ func (h *Handler) deletePost(c *gin.Context) {
 	_, err = h.service.DeletePost(
 		context.Background(),
 		&posts_proto.PostIdRequest{
-			AuthorId: int32(userId),
-			PostId:   int32(postId),
+			AuthorId: userId,
+			PostId:   postId,
 		})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -138,12 +139,12 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
-	var authorId int
+	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
 		authorId = userId
 	} else {
-		authorId, err = strconv.Atoi(authorIdS)
+		authorId, err = strconv.ParseInt(authorIdS, 10, 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 			return
@@ -156,7 +157,7 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
-	postId, err := strconv.Atoi(postIdS)
+	postId, err := strconv.ParseInt(postIdS, 10, 64)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "id parameter not a number")
 		return
@@ -165,8 +166,8 @@ func (h *Handler) getPost(c *gin.Context) {
 	post, err := h.service.GetPost(
 		context.Background(),
 		&posts_proto.PostIdRequest{
-			AuthorId: int32(authorId),
-			PostId:   int32(postId),
+			AuthorId: authorId,
+			PostId:   postId,
 		})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -176,6 +177,7 @@ func (h *Handler) getPost(c *gin.Context) {
 	log.Println("successful getPost request")
 	c.JSON(http.StatusOK,
 		postResponse{
+			Id:          post.Id,
 			Text:        post.Text,
 			TimeUpdated: post.TimeUpdated.AsTime().Format(time.RFC3339),
 		})
@@ -188,12 +190,12 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	var authorId int
+	var authorId int64
 	authorIdS, ok := c.GetQuery("author_id")
 	if !ok {
 		authorId = userId
 	} else {
-		authorId, err = strconv.Atoi(authorIdS)
+		authorId, err = strconv.ParseInt(authorIdS, 10, 64)
 		if err != nil {
 			newErrorResponse(c, http.StatusBadRequest, "author_id parameter is not a number")
 			return
@@ -227,7 +229,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 	posts, err := h.service.GetPageOfPosts(
 		context.Background(),
 		&posts_proto.GetPageOfPostsRequest{
-			AuthorId: int32(authorId),
+			AuthorId: authorId,
 			PageNum:  int32(pageNum),
 			PageSize: int32(pageSize),
 		})
@@ -239,6 +241,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 	postsData := make([]postResponse, posts.PageSize)
 	for i := range (*posts).Posts {
 		postsData[i] = postResponse{
+			Id:          (*posts).Posts[i].Id,
 			Text:        (*posts).Posts[i].Text,
 			TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339),
 		}
@@ -247,8 +250,8 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 	log.Println("successful getPageOfPosts request")
 	c.JSON(http.StatusOK,
 		postsByPageOutput{
-			PageNum:  int(posts.PageNum),
-			PageSize: int(posts.PageSize),
+			PageNum:  posts.PageNum,
+			PageSize: posts.PageSize,
 			Posts:    postsData,
 		})
 }
