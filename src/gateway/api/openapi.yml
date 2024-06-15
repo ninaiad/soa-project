@@ -462,6 +462,9 @@ components:
           example: 'vEryStr0ngP4ssw0Rd1ndEEd'
     UserPublic:
       properties:
+        username:
+          type: string
+          example: bluefinch11
         name:
           type: string
           example: Lærke
