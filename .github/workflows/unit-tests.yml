@@ -20,21 +20,21 @@ jobs:
       
     - name: Main Service unit tests
       run: |
-        cd 'main_service'
+        cd 'src/gateway'
         go mod download
         go test ./... -v
         cd - > /dev/null
 
     - name: Posts Service unit tests
       run: |
-        cd 'posts_service'
+        cd 'src/posts'
         go mod download
         go test ./... -v
         cd - > /dev/null
   
     - name: Statistics Service unit tests
       run: |
-        cd 'statistics_service'
+        cd 'src/statistics'
         go mod download
         go test ./... -v
         cd - > /dev/null
