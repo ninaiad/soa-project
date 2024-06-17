@@ -2,11 +2,11 @@
 
 A toy social network backend with microservice architecture.
 
-The application is accessible via Gateway service [API]()
+The application is accessible via Gateway service [API](https://github.com/ninaiad/toy-social/blob/main/src/gateway/api/openapi.yml)
 
 ## Services
 
-See architecture details in [`/docs`]()
+See architecture details in [`/docs`](https://github.com/ninaiad/toy-social/tree/main/docs)
 
 #### Gateway
 - Authenticates requests
