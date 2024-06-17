@@ -162,7 +162,7 @@ services:
 
   posts-tests:
     build:
-      context: ./tests/posts_tests
+      context: ./tests/posts
       dockerfile: posts.dockerfile
     depends_on:
       posts:
