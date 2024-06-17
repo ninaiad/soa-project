@@ -34,11 +34,11 @@ func (p *PostsService) UpdatePost(_ context.Context, r *pb.UpdateRequest) (*empt
 	return &emptypb.Empty{}, p.db.UpdatePost(r.AuthorId, r.PostId, r.Text)
 }
 
-func (p *PostsService) DeletePost(_ context.Context, r *pb.PostIdRequest) (*emptypb.Empty, error) {
+func (p *PostsService) DeletePost(_ context.Context, r *pb.PostId) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, p.db.DeletePost(r.AuthorId, r.PostId)
 }
 
-func (p *PostsService) GetPost(_ context.Context, r *pb.PostIdRequest) (*pb.Post, error) {
+func (p *PostsService) GetPost(_ context.Context, r *pb.PostId) (*pb.Post, error) {
 	post, err := p.db.GetPost(r.AuthorId, r.PostId)
 	if err != nil {
 		return nil, err
@@ -72,6 +72,11 @@ func (p *PostsService) GetPageOfPosts(
 	return &pb.GetPageOfPostsResponse{
 		PageNum:  r.PageNum,
 		PageSize: int32(len(*posts)),
+		AuthorId: r.AuthorId,
 		Posts:    pbPosts,
 	}, nil
+}
+
+func (p *PostsService) DeleteUser(ctx context.Context, in *pb.UserId) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, p.db.DeleteUser(in.GetId())
 }

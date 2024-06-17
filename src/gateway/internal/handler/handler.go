@@ -31,6 +31,7 @@ func (h *Handler) SetupRouter() *gin.Engine {
 		user.POST("/sign-in", h.signIn)
 
 		user.PUT("/", h.userIdentity, h.updateUser)
+		user.DELETE("/", h.userIdentity, h.deleteUser)
 
 		user.GET("/posts", h.userIdentity, h.getPageOfPosts)
 	}

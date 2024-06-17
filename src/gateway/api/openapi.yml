@@ -3,7 +3,7 @@ info:
   title: Toy Social Gateway Service API
   description: |-
     [The Social Network project repository](https://github.com/ninaiad/toy-social)
-  version: 2.0.0
+  version: 2.1.0
 
 tags:
   - name: user
@@ -114,7 +114,23 @@ paths:
           description: Unauthorized
         '500':
           description: Internal server error
-  /user/posts{page_num}{page_size}{author_id}:
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - user
+      summary: Delete all user data
+      description: Operation accessible only to logged in users
+      responses:
+        '200':
+          description: "Ok"
+        '400':
+          description: Wrong input format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /user/posts{author_id}{page_num}{page_size}:
     get:
       security:
         - bearerAuth: []
@@ -122,6 +138,12 @@ paths:
         - posts
       description: Operation accessible only to logged in users
       parameters:
+        - in: path
+          name: author_id
+          schema:
+            type: integer
+          required: false
+          description: Author of the post id. If not specified the logged in user's id is used instead
         - in: path
           name: page_num
           schema:
@@ -134,12 +156,6 @@ paths:
             type: integer
           required: true
           description: Number of posts on a page
-        - in: path
-          name: author_id
-          schema:
-            type: integer
-          required: false
-          description: Author of the post id. If not specified the logged in user's id is used instead
       responses:
         '200':
           description: OK

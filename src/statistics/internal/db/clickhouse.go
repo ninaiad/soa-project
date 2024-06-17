@@ -159,3 +159,13 @@ func (db *StatisticsClickhouse) GetTopKUsers(
 
 	return users, nil
 }
+
+func (db *StatisticsClickhouse) DeleteUser(ctx context.Context, userId int64) error {
+	query := fmt.Sprintf(`DELETE from events WHERE author_id = %v`, userId)
+	return db.conn.Exec(ctx, query)
+}
+
+func (db *StatisticsClickhouse) DeletePost(ctx context.Context, postId int64) error {
+	query := fmt.Sprintf(`DELETE from events WHERE post_id = %v`, postId)
+	return db.conn.Exec(ctx, query)
+}

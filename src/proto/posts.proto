@@ -10,9 +10,11 @@ option go_package = "soa-main/posts_proto";
 service PostsServer {
     rpc CreatePost(CreateRequest) returns (CreateResponse) {}
     rpc UpdatePost(UpdateRequest) returns (google.protobuf.Empty) {}
-    rpc DeletePost(PostIdRequest) returns (google.protobuf.Empty) {}
-    rpc GetPost(PostIdRequest) returns (Post) {}
+    rpc DeletePost(PostId) returns (google.protobuf.Empty) {}
+    rpc GetPost(PostId) returns (Post) {}
     rpc GetPageOfPosts(GetPageOfPostsRequest) returns (GetPageOfPostsResponse) {}
+
+    rpc DeleteUser(UserId) returns (google.protobuf.Empty) {}
 }
 
 message CreateRequest {
@@ -30,7 +32,11 @@ message UpdateRequest {
     string text = 3;
 }
 
-message PostIdRequest {
+message UserId {
+    int64 id = 1;
+}
+
+message PostId {
     int64 author_id = 1;
     int64 post_id = 2;
 }
@@ -51,5 +57,6 @@ message GetPageOfPostsRequest {
 message GetPageOfPostsResponse {
     int32 page_num = 1;
     int32 page_size = 2;
-    repeated Post posts = 3;
+    int64 author_id = 3;
+    repeated Post posts = 4;
 }

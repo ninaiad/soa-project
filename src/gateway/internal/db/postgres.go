@@ -131,3 +131,13 @@ func (a *AuthPostgres) UpdateUser(userId int64, update user.UserPublic, timeUpda
 	)
 	return err
 }
+
+func (a *AuthPostgres) DeleteUser(userId int64) error {
+	query := fmt.Sprintf(`
+		DELETE from %s WHERE id = $1`,
+		usersTable)
+	_, err := a.db.Exec(query,
+		userId,
+	)
+	return err
+}

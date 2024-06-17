@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -22,6 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type StatisticsServiceClient interface {
+	DeleteUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetPostStatistics(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*PostStatistics, error)
 	GetTopKPosts(ctx context.Context, in *TopKRequest, opts ...grpc.CallOption) (*TopPosts, error)
 	GetTopKUsers(ctx context.Context, in *TopKRequest, opts ...grpc.CallOption) (*TopUsers, error)
@@ -33,6 +36,24 @@ type statisticsServiceClient struct {
 
 func NewStatisticsServiceClient(cc grpc.ClientConnInterface) StatisticsServiceClient {
 	return &statisticsServiceClient{cc}
+}
+
+func (c *statisticsServiceClient) DeleteUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/statistics_proto.StatisticsService/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *statisticsServiceClient) DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/statistics_proto.StatisticsService/DeletePost", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *statisticsServiceClient) GetPostStatistics(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*PostStatistics, error) {
@@ -66,6 +87,8 @@ func (c *statisticsServiceClient) GetTopKUsers(ctx context.Context, in *TopKRequ
 // All implementations must embed UnimplementedStatisticsServiceServer
 // for forward compatibility
 type StatisticsServiceServer interface {
+	DeleteUser(context.Context, *UserId) (*emptypb.Empty, error)
+	DeletePost(context.Context, *PostId) (*emptypb.Empty, error)
 	GetPostStatistics(context.Context, *PostId) (*PostStatistics, error)
 	GetTopKPosts(context.Context, *TopKRequest) (*TopPosts, error)
 	GetTopKUsers(context.Context, *TopKRequest) (*TopUsers, error)
@@ -76,6 +99,12 @@ type StatisticsServiceServer interface {
 type UnimplementedStatisticsServiceServer struct {
 }
 
+func (UnimplementedStatisticsServiceServer) DeleteUser(context.Context, *UserId) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedStatisticsServiceServer) DeletePost(context.Context, *PostId) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
+}
 func (UnimplementedStatisticsServiceServer) GetPostStatistics(context.Context, *PostId) (*PostStatistics, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPostStatistics not implemented")
 }
@@ -96,6 +125,42 @@ type UnsafeStatisticsServiceServer interface {
 
 func RegisterStatisticsServiceServer(s grpc.ServiceRegistrar, srv StatisticsServiceServer) {
 	s.RegisterService(&StatisticsService_ServiceDesc, srv)
+}
+
+func _StatisticsService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StatisticsServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/statistics_proto.StatisticsService/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StatisticsServiceServer).DeleteUser(ctx, req.(*UserId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _StatisticsService_DeletePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StatisticsServiceServer).DeletePost(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/statistics_proto.StatisticsService/DeletePost",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StatisticsServiceServer).DeletePost(ctx, req.(*PostId))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _StatisticsService_GetPostStatistics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -159,6 +224,14 @@ var StatisticsService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "statistics_proto.StatisticsService",
 	HandlerType: (*StatisticsServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "DeleteUser",
+			Handler:    _StatisticsService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "DeletePost",
+			Handler:    _StatisticsService_DeletePost_Handler,
+		},
 		{
 			MethodName: "GetPostStatistics",
 			Handler:    _StatisticsService_GetPostStatistics_Handler,

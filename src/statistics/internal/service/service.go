@@ -6,6 +6,7 @@ import (
 	"statistics/internal/db"
 	pb "statistics/internal/pb"
 
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -20,7 +21,7 @@ func NewStatisticsService(db db.StatisticsDatabase) *StatisticsService {
 
 func (s *StatisticsService) GetPostStatistics(
 	ctx context.Context, in *pb.PostId) (*pb.PostStatistics, error) {
-	postDb, err := s.db.GetPostStatistics(ctx, in.GetPostId())
+	postDb, err := s.db.GetPostStatistics(ctx, in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -86,4 +87,12 @@ func (s *StatisticsService) GetTopKUsers(
 	}
 
 	return &pb.TopUsers{Users: users, TimeCollected: timestamppb.Now()}, nil
+}
+
+func (s *StatisticsService) DeleteUser(ctx context.Context, in *pb.UserId) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, s.db.DeleteUser(ctx, in.GetId())
+}
+
+func (s *StatisticsService) DeletePost(ctx context.Context, in *pb.PostId) (*emptypb.Empty, error) {
+	return &emptypb.Empty{}, s.db.DeletePost(ctx, in.GetId())
 }

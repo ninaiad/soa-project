@@ -12,6 +12,8 @@ type PostsDatabase interface {
 	DeletePost(userId, postId int64) error
 	GetPost(userId, postId int64) (*post.Post, error)
 	GetPageOfPosts(userId int64, pageNum, pageSize int32) (*[]post.Post, error)
+
+	DeleteUser(userId int64) error
 }
 
 type Database struct {

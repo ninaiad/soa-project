@@ -28,7 +28,7 @@ func TestPost(t *testing.T) {
 	assert.NoError(t, err)
 	postId := res.PostId
 
-	req := &pb.PostIdRequest{AuthorId: 42, PostId: postId}
+	req := &pb.PostId{AuthorId: 42, PostId: postId}
 
 	resp, err := client.GetPost(context.Background(), req)
 	assert.NoError(t, err)
@@ -69,7 +69,7 @@ func TestPost(t *testing.T) {
 	}
 
 	for _, id := range ids {
-		_, err = client.DeletePost(context.Background(), &pb.PostIdRequest{AuthorId: 42, PostId: id})
+		_, err = client.DeletePost(context.Background(), &pb.PostId{AuthorId: 42, PostId: id})
 		assert.NoError(t, err)
 	}
 }

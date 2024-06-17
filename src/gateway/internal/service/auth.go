@@ -78,6 +78,10 @@ func (a *AuthService) UpdateUser(userId int64, update user.UserPublic) (user.Use
 	return update, a.db.UpdateUser(userId, update, time.Now().Format(time.RFC3339))
 }
 
+func (a *AuthService) DeleteUser(userId int64) error {
+	return a.db.DeleteUser(userId)
+}
+
 func (a *AuthService) GenerateToken(username, password string) (string, int64, error) {
 	userId, err := a.db.GetUserId(username, generatePasswordHash(password))
 	if err != nil {

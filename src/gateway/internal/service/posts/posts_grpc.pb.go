@@ -25,9 +25,10 @@ const _ = grpc.SupportPackageIsVersion7
 type PostsServerClient interface {
 	CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	UpdatePost(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	DeletePost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetPost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*Post, error)
+	DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*Post, error)
 	GetPageOfPosts(ctx context.Context, in *GetPageOfPostsRequest, opts ...grpc.CallOption) (*GetPageOfPostsResponse, error)
+	DeleteUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type postsServerClient struct {
@@ -56,7 +57,7 @@ func (c *postsServerClient) UpdatePost(ctx context.Context, in *UpdateRequest, o
 	return out, nil
 }
 
-func (c *postsServerClient) DeletePost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *postsServerClient) DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/DeletePost", in, out, opts...)
 	if err != nil {
@@ -65,7 +66,7 @@ func (c *postsServerClient) DeletePost(ctx context.Context, in *PostIdRequest, o
 	return out, nil
 }
 
-func (c *postsServerClient) GetPost(ctx context.Context, in *PostIdRequest, opts ...grpc.CallOption) (*Post, error) {
+func (c *postsServerClient) GetPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*Post, error) {
 	out := new(Post)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/GetPost", in, out, opts...)
 	if err != nil {
@@ -83,15 +84,25 @@ func (c *postsServerClient) GetPageOfPosts(ctx context.Context, in *GetPageOfPos
 	return out, nil
 }
 
+func (c *postsServerClient) DeleteUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PostsServerServer is the server API for PostsServer service.
 // All implementations must embed UnimplementedPostsServerServer
 // for forward compatibility
 type PostsServerServer interface {
 	CreatePost(context.Context, *CreateRequest) (*CreateResponse, error)
 	UpdatePost(context.Context, *UpdateRequest) (*emptypb.Empty, error)
-	DeletePost(context.Context, *PostIdRequest) (*emptypb.Empty, error)
-	GetPost(context.Context, *PostIdRequest) (*Post, error)
+	DeletePost(context.Context, *PostId) (*emptypb.Empty, error)
+	GetPost(context.Context, *PostId) (*Post, error)
 	GetPageOfPosts(context.Context, *GetPageOfPostsRequest) (*GetPageOfPostsResponse, error)
+	DeleteUser(context.Context, *UserId) (*emptypb.Empty, error)
 	mustEmbedUnimplementedPostsServerServer()
 }
 
@@ -105,14 +116,17 @@ func (UnimplementedPostsServerServer) CreatePost(context.Context, *CreateRequest
 func (UnimplementedPostsServerServer) UpdatePost(context.Context, *UpdateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePost not implemented")
 }
-func (UnimplementedPostsServerServer) DeletePost(context.Context, *PostIdRequest) (*emptypb.Empty, error) {
+func (UnimplementedPostsServerServer) DeletePost(context.Context, *PostId) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
 }
-func (UnimplementedPostsServerServer) GetPost(context.Context, *PostIdRequest) (*Post, error) {
+func (UnimplementedPostsServerServer) GetPost(context.Context, *PostId) (*Post, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPost not implemented")
 }
 func (UnimplementedPostsServerServer) GetPageOfPosts(context.Context, *GetPageOfPostsRequest) (*GetPageOfPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPageOfPosts not implemented")
+}
+func (UnimplementedPostsServerServer) DeleteUser(context.Context, *UserId) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedPostsServerServer) mustEmbedUnimplementedPostsServerServer() {}
 
@@ -164,7 +178,7 @@ func _PostsServer_UpdatePost_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _PostsServer_DeletePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PostIdRequest)
+	in := new(PostId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -176,13 +190,13 @@ func _PostsServer_DeletePost_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/posts_proto.PostsServer/DeletePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServerServer).DeletePost(ctx, req.(*PostIdRequest))
+		return srv.(PostsServerServer).DeletePost(ctx, req.(*PostId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostsServer_GetPost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PostIdRequest)
+	in := new(PostId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -194,7 +208,7 @@ func _PostsServer_GetPost_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/posts_proto.PostsServer/GetPost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServerServer).GetPost(ctx, req.(*PostIdRequest))
+		return srv.(PostsServerServer).GetPost(ctx, req.(*PostId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -213,6 +227,24 @@ func _PostsServer_GetPageOfPosts_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(PostsServerServer).GetPageOfPosts(ctx, req.(*GetPageOfPostsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostsServer_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostsServerServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/posts_proto.PostsServer/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostsServerServer).DeleteUser(ctx, req.(*UserId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -243,6 +275,10 @@ var PostsServer_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPageOfPosts",
 			Handler:    _PostsServer_GetPageOfPosts_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _PostsServer_DeleteUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

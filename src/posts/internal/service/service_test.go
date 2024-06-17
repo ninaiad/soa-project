@@ -18,7 +18,7 @@ func TestPosts(t *testing.T) {
 	db := MockPostsDatabase{}
 	s := service.NewPostsService(&db)
 
-	_, err := s.GetPost(context.Background(), &pb.PostIdRequest{PostId: 13, AuthorId: 42})
+	_, err := s.GetPost(context.Background(), &pb.PostId{PostId: 13, AuthorId: 42})
 	assert.Error(t, err)
 	_, err = s.UpdatePost(context.Background(), &pb.UpdateRequest{PostId: 13, AuthorId: 42, Text: ""})
 	assert.Error(t, err)
@@ -31,7 +31,7 @@ func TestPosts(t *testing.T) {
 	assert.NoError(t, err)
 	postId := res.PostId
 
-	getResp, err := s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	getResp, err := s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
 	assert.Equal(t, req.Text, getResp.Text)
 
@@ -43,13 +43,13 @@ func TestPosts(t *testing.T) {
 	_, err = s.UpdatePost(context.Background(), reqUpd)
 	assert.NoError(t, err)
 
-	getResp, err = s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	getResp, err = s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
 	assert.Equal(t, reqUpd.Text, getResp.Text)
 
-	_, err = s.DeletePost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	_, err = s.DeletePost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
-	_, err = s.GetPost(context.Background(), &pb.PostIdRequest{PostId: postId, AuthorId: 42})
+	_, err = s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
 	assert.Error(t, err)
 }
 
@@ -151,4 +151,28 @@ func (m *MockPostsDatabase) GetPageOfPosts(
 	Id int64, pageNum, pageSize int32) (*[]post.Post, error) {
 	args := m.Called(Id, pageNum, pageSize)
 	return args.Get(0).(*[]post.Post), args.Error(1)
+}
+
+func (m *MockPostsDatabase) DeleteUser(userId int64) error {
+	toDelete := []int{}
+	for i, p := range m.posts {
+		if p.AuthorId == userId {
+			toDelete = append(toDelete, i)
+		}
+	}
+	if len(toDelete) == 0 {
+		return fmt.Errorf("Not found")
+	}
+
+	for _, i := range toDelete {
+		if len(m.posts) == 1 {
+			m.posts = []postExt{}
+			return nil
+		}
+
+		m.posts[i] = m.posts[len(m.posts)-1]
+		m.posts = m.posts[:1]
+	}
+
+	return nil
 }

@@ -126,3 +126,12 @@ func (p *PostsPostgres) GetPageOfPosts(
 	err := p.db.Select(&posts, q, userId, (pageNum-1)*pageSize, pageSize)
 	return &posts, err
 }
+
+func (p *PostsPostgres) DeleteUser(userId int64) error {
+	q := fmt.Sprintf(`
+		DELETE FROM %s
+		WHERE user_id=$1`,
+		postsTable)
+	_, err := p.db.Exec(q, userId)
+	return err
+}

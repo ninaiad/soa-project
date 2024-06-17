@@ -67,6 +67,9 @@ async def test_user():
         assert "name" in r_json and r_json["name"] == "Test!"
         assert "email" in r_json and r_json["email"] == "test@test"
 
+        r = await c.delete(f"{USER_ENDPOINT}/", headers=auth_header)
+        assert r.status_code == 200
+
 
 @pytest.mark.asyncio
 async def test_posts():
@@ -122,3 +125,6 @@ async def test_posts():
         assert (posts[0]["text"] == txt1 and posts[1]["text"] == txt2) or (
             posts[1]["text"] == txt1 and posts[0]["text"] == txt2
         )
+
+        r = await c.delete(f"{USER_ENDPOINT}/")
+        assert r.status_code == 200

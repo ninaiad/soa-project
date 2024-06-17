@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	post_pb "gateway/internal/service/posts"
+	stat_pb "gateway/internal/service/statistics"
 	"gateway/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -91,4 +93,32 @@ func (h *Handler) updateUser(c *gin.Context) {
 
 	log.Println("successful updateUser request")
 	c.JSON(http.StatusOK, updatedData)
+}
+
+func (h *Handler) deleteUser(c *gin.Context) {
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = h.service.Authorization.DeleteUser(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	_, err = h.service.PostsServerClient.DeleteUser(&gin.Context{}, &post_pb.UserId{Id: userId})
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	_, err = h.service.StatisticsServiceClient.DeleteUser(&gin.Context{}, &stat_pb.UserId{Id: userId})
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.Println("successful updateUser request")
+	c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 }

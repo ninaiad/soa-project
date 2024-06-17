@@ -17,14 +17,14 @@ func TestGetPostStatistics(t *testing.T) {
 	svc := NewStatisticsService(&db)
 
 	ctx := context.Background()
-	req := &pb.PostId{PostId: 1}
+	req := &pb.PostId{Id: 1}
 	postStats := &statistics.Post{
 		PostId:   1,
 		AuthorId: 1,
 		NumLikes: 10,
 		NumViews: 100,
 	}
-	db.On("GetPostStatistics", ctx, req.GetPostId()).Return(postStats, nil)
+	db.On("GetPostStatistics", ctx, req.GetId()).Return(postStats, nil)
 
 	res, err := svc.GetPostStatistics(ctx, req)
 	assert.NoError(t, err)
@@ -84,6 +84,12 @@ func TestGetTopKUsers(t *testing.T) {
 
 type MockStatisticsDB struct {
 	mock.Mock
+}
+
+func (db *MockStatisticsDB) DeleteUser(ctx context.Context, userId int64) error {
+}
+
+func (db *MockStatisticsDB) DeletePost(ctx context.Context, postId int64) error {
 }
 
 func (m *MockStatisticsDB) GetPostStatistics(

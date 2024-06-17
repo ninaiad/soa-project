@@ -150,3 +150,25 @@ func (db *MockDB) UpdateUser(userId int64, update user.UserPublic, timeUpdated s
 
 	return fmt.Errorf("Not found")
 }
+
+func (db *MockDB) DeleteUser(userId int64) error {
+	toDelete := -1
+	for i, u := range db.users {
+		if u.Id == userId {
+			toDelete = i
+			break
+		}
+	}
+	if toDelete == -1 {
+		return fmt.Errorf("Not found")
+	}
+
+	if len(db.users) == 1 {
+		db.users = []user.User{}
+		return nil
+	}
+
+	db.users[toDelete] = db.users[len(db.users)-1]
+	db.users = db.users[:1]
+	return nil
+}

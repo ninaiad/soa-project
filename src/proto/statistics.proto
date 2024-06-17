@@ -1,19 +1,27 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 package statistics_proto;
 
 option go_package = "soa-statistics/proto";
 
 service StatisticsService {
+  rpc DeleteUser(UserId) returns (google.protobuf.Empty) {}
+  rpc DeletePost(PostId) returns (google.protobuf.Empty) {}
+  
   rpc GetPostStatistics(PostId) returns (PostStatistics) {}
   rpc GetTopKPosts(TopKRequest) returns (TopPosts) {}
   rpc GetTopKUsers(TopKRequest) returns (TopUsers) {}
 }
 
+message UserId {
+  int64 id = 1;
+}
+
 message PostId {
-  int64 post_id = 1;
+  int64 id = 1;
 }
 
 message PostStatistics {

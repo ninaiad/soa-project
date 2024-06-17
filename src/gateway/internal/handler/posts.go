@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
-	"gateway/internal/service/posts"
+	posts_pb "gateway/internal/service/posts"
+	stat_pb "gateway/internal/service/statistics"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,7 +47,7 @@ func (h *Handler) createPost(c *gin.Context) {
 
 	resp, err := h.service.CreatePost(
 		context.Background(),
-		&posts_proto.CreateRequest{AuthorId: userId, Text: input.Text})
+		&posts_pb.CreateRequest{AuthorId: userId, Text: input.Text})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -84,7 +84,7 @@ func (h *Handler) updatePost(c *gin.Context) {
 
 	_, err = h.service.UpdatePost(
 		context.Background(),
-		&posts_proto.UpdateRequest{
+		&posts_pb.UpdateRequest{
 			AuthorId: userId,
 			PostId:   postId,
 			Text:     input.Text,
@@ -117,11 +117,21 @@ func (h *Handler) deletePost(c *gin.Context) {
 		return
 	}
 
-	_, err = h.service.DeletePost(
+	_, err = h.service.PostsServerClient.DeletePost(
 		context.Background(),
-		&posts_proto.PostIdRequest{
+		&posts_pb.PostId{
 			AuthorId: userId,
 			PostId:   postId,
+		})
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	_, err = h.service.StatisticsServiceClient.DeletePost(
+		context.Background(),
+		&stat_pb.PostId{
+			Id: postId,
 		})
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
@@ -165,7 +175,7 @@ func (h *Handler) getPost(c *gin.Context) {
 
 	post, err := h.service.GetPost(
 		context.Background(),
-		&posts_proto.PostIdRequest{
+		&posts_pb.PostId{
 			AuthorId: authorId,
 			PostId:   postId,
 		})
@@ -175,12 +185,7 @@ func (h *Handler) getPost(c *gin.Context) {
 	}
 
 	log.Println("successful getPost request")
-	c.JSON(http.StatusOK,
-		postResponse{
-			Id:          post.Id,
-			Text:        post.Text,
-			TimeUpdated: post.TimeUpdated.AsTime().Format(time.RFC3339),
-		})
+	c.JSON(http.StatusOK, post)
 }
 
 func (h *Handler) getPageOfPosts(c *gin.Context) {
@@ -228,7 +233,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 
 	posts, err := h.service.GetPageOfPosts(
 		context.Background(),
-		&posts_proto.GetPageOfPostsRequest{
+		&posts_pb.GetPageOfPostsRequest{
 			AuthorId: authorId,
 			PageNum:  int32(pageNum),
 			PageSize: int32(pageSize),
@@ -238,20 +243,15 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	postsData := make([]postResponse, posts.PageSize)
-	for i := range (*posts).Posts {
-		postsData[i] = postResponse{
-			Id:          (*posts).Posts[i].Id,
-			Text:        (*posts).Posts[i].Text,
-			TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339),
-		}
-	}
-
+	//	postsData := make([]postResponse, posts.PageSize)
+	//	for i := range (*posts).Posts {
+	//		postsData[i] = postResponse{
+	//			Id:          (*posts).Posts[i].Id,
+	//			Text:        (*posts).Posts[i].Text,
+	//			TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339),
+	//		}
+	//	}
+	//
 	log.Println("successful getPageOfPosts request")
-	c.JSON(http.StatusOK,
-		postsByPageOutput{
-			PageNum:  posts.PageNum,
-			PageSize: posts.PageSize,
-			Posts:    postsData,
-		})
+	c.JSON(http.StatusOK, posts)
 }

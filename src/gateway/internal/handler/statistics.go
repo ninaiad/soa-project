@@ -129,7 +129,7 @@ func (h *Handler) getPostStatistics(c *gin.Context) {
 		return
 	}
 
-	s, err := h.service.GetPostStatistics(c.Request.Context(), &pb.PostId{PostId: postId})
+	s, err := h.service.GetPostStatistics(c.Request.Context(), &pb.PostId{Id: postId})
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting post statistics")

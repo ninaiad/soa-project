@@ -13,6 +13,7 @@ import (
 type Authorization interface {
 	CreateUser(user user.User) (int64, error)
 	UpdateUser(userId int64, update user.UserPublic) (user.UserPublic, error)
+	DeleteUser(userId int64) error
 	GetUsername(userId int64) (string, error)
 	GenerateToken(username, password string) (string, int64, error)
 	ParseToken(token string) (int64, error)
