@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	posts_pb "gateway/internal/service/posts"
 	stat_pb "gateway/internal/service/statistics"
@@ -27,6 +28,7 @@ type postResponse struct {
 }
 
 type postsByPageOutput struct {
+	AuthorId int64          `json:"author_id"`
 	PageNum  int32          `json:"page_num"`
 	PageSize int32          `json:"page_size"`
 	Posts    []postResponse `json:"posts"`
@@ -185,7 +187,12 @@ func (h *Handler) getPost(c *gin.Context) {
 	}
 
 	log.Println("successful getPost request")
-	c.JSON(http.StatusOK, post)
+	c.JSON(http.StatusOK,
+		postResponse{
+			Id:          post.Id,
+			Text:        post.Text,
+			TimeUpdated: post.TimeUpdated.AsTime().Format(time.RFC3339),
+		})
 }
 
 func (h *Handler) getPageOfPosts(c *gin.Context) {
@@ -243,15 +250,21 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	//	postsData := make([]postResponse, posts.PageSize)
-	//	for i := range (*posts).Posts {
-	//		postsData[i] = postResponse{
-	//			Id:          (*posts).Posts[i].Id,
-	//			Text:        (*posts).Posts[i].Text,
-	//			TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339),
-	//		}
-	//	}
-	//
+	postsData := make([]postResponse, posts.PageSize)
+	for i := range (*posts).Posts {
+		postsData[i] = postResponse{
+			Id:          (*posts).Posts[i].Id,
+			Text:        (*posts).Posts[i].Text,
+			TimeUpdated: (*posts).Posts[i].TimeUpdated.AsTime().Format(time.RFC3339),
+		}
+	}
+
 	log.Println("successful getPageOfPosts request")
-	c.JSON(http.StatusOK, posts)
+	c.JSON(http.StatusOK,
+		postsByPageOutput{
+			AuthorId: authorId,
+			PageNum:  posts.PageNum,
+			PageSize: posts.PageSize,
+			Posts:    postsData,
+		})
 }

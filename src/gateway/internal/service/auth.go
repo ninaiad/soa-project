@@ -59,6 +59,9 @@ func (a *AuthService) UpdateUser(userId int64, update user.UserPublic) (user.Use
 		return user.UserPublic{}, err
 	}
 
+	if update.Username == "" {
+		update.Username = userData.Username
+	}
 	if update.Birthday == "" {
 		update.Birthday = userData.Birthday
 	}

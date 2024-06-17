@@ -86,12 +86,6 @@ type MockStatisticsDB struct {
 	mock.Mock
 }
 
-func (db *MockStatisticsDB) DeleteUser(ctx context.Context, userId int64) error {
-}
-
-func (db *MockStatisticsDB) DeletePost(ctx context.Context, postId int64) error {
-}
-
 func (m *MockStatisticsDB) GetPostStatistics(
 	ctx context.Context, postId int64) (*statistics.Post, error) {
 	args := m.Called(ctx, postId)
@@ -108,4 +102,12 @@ func (m *MockStatisticsDB) GetTopKUsers(
 	ctx context.Context, eventType string, k uint64) ([]statistics.User, error) {
 	args := m.Called(ctx, eventType, k)
 	return args.Get(0).([]statistics.User), args.Error(1)
+}
+
+func (m *MockStatisticsDB) DeleteUser(ctx context.Context, userId int64) error {
+	panic("Unimplemented")
+}
+
+func (m *MockStatisticsDB) DeletePost(ctx context.Context, postId int64) error {
+	panic("Unimplemented")
 }

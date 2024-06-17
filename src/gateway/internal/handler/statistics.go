@@ -12,11 +12,11 @@ import (
 )
 
 type postStatistics struct {
-	Id          int64  `json:"id"`
-	AuthorId    int64  `json:"author_id"`
-	AuthorLogin string `json:"author_login"`
-	NumLikes    uint64 `json:"num_likes"`
-	NumViews    uint64 `json:"num_views"`
+	Id             int64  `json:"id"`
+	AuthorId       int64  `json:"author_id"`
+	AuthorUsername string `json:"author_username"`
+	NumLikes       uint64 `json:"num_likes"`
+	NumViews       uint64 `json:"num_views"`
 }
 
 type topPosts struct {
@@ -25,7 +25,7 @@ type topPosts struct {
 
 type userStatistics struct {
 	Id       int64  `json:"id"`
-	Login    string `json:"login"`
+	Username string `json:"username"`
 	NumLikes uint64 `json:"num_likes"`
 	NumViews uint64 `json:"num_views"`
 }
@@ -146,11 +146,11 @@ func (h *Handler) getPostStatistics(c *gin.Context) {
 	log.Println("successful getPostStatistics request")
 	c.JSON(http.StatusOK,
 		postStatistics{
-			Id:          postId,
-			AuthorId:    s.GetAuthorId(),
-			AuthorLogin: username,
-			NumLikes:    s.GetNumLikes(),
-			NumViews:    s.GetNumViews(),
+			Id:             postId,
+			AuthorId:       s.GetAuthorId(),
+			AuthorUsername: username,
+			NumLikes:       s.GetNumLikes(),
+			NumViews:       s.GetNumViews(),
 		})
 }
 
@@ -201,11 +201,11 @@ func (h *Handler) getTopKPosts(c *gin.Context) {
 
 		posts = append(posts,
 			postStatistics{
-				Id:          p.GetPostId(),
-				AuthorId:    p.GetAuthorId(),
-				AuthorLogin: username,
-				NumLikes:    p.GetNumLikes(),
-				NumViews:    p.GetNumViews(),
+				Id:             p.GetPostId(),
+				AuthorId:       p.GetAuthorId(),
+				AuthorUsername: username,
+				NumLikes:       p.GetNumLikes(),
+				NumViews:       p.GetNumViews(),
 			})
 	}
 
@@ -261,7 +261,7 @@ func (h *Handler) getTopKUsers(c *gin.Context) {
 		users = append(users,
 			userStatistics{
 				Id:       u.GetId(),
-				Login:    username,
+				Username: username,
 				NumLikes: u.GetNumLikes(),
 				NumViews: u.GetNumViews(),
 			})

@@ -3,7 +3,7 @@ info:
   title: Toy Social Gateway Service API
   description: |-
     [The Social Network project repository](https://github.com/ninaiad/toy-social)
-  version: 2.1.0
+  version: 2.1.1
 
 tags:
   - name: user
@@ -225,6 +225,7 @@ paths:
               schema:
                 type: object
                 example: {
+                  "id" : 15,
                   "text" : "My first post! Hello world!",
                   "time_updated": "2024-03-18T21:54:42.123Z"
                 }
@@ -499,6 +500,9 @@ components:
           example: '+453489572923'
     PageOfPosts:
       properties:
+        author_id:
+          type: number
+          example: 123
         page_num:
           type: integer
           example: 1
@@ -522,7 +526,7 @@ components:
         author_id:
           type: number
           example: 123
-        author_login:
+        username:
           type: string
           example: bluefinch
         num_likes:
@@ -537,7 +541,7 @@ components:
         id:
           type: number
           example: 123
-        login:
+        username:
           type: string
           example: bluefinch
         num_likes:
