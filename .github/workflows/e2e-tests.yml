@@ -7,10 +7,11 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
+
+  run:
     runs-on: ubuntu-latest
     steps:
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -24,3 +25,19 @@ jobs:
 
     - name: Run end-to-end tests
       run: make test-e2e
+    
+    - name: Show gateway service logs
+      if: always()
+      run: docker compose logs --no-log-prefix gateway
+
+    - name: Show posts service logs
+      if: always()
+      run: docker compose logs --no-log-prefix posts
+
+    - name: Show statistics service logs
+      if: always()
+      run: docker compose logs --no-log-prefix statistics
+
+    - name: Stop containers
+      if: always()
+      run: make stop
