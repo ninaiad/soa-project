@@ -19,9 +19,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: stable
-      - name: golangci-lint
+      # https://github.com/golangci/golangci-lint-action/issues/271#issuecomment-1962834476
+      - name: Setup golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          working-directory: src/gateway/internal
-          version: v1.58
+          args: --help
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
+
+      - name: Run linter
+        run: make lint
