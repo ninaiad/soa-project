@@ -1,4 +1,4 @@
-name: Go
+name: Unit tests
 
 on:
   push:
@@ -18,21 +18,21 @@ jobs:
       with:
         go-version: '1.22'
       
-    - name: Main Service unit tests
+    - name: Run gateway unit tests
       run: |
         cd 'src/gateway'
         go mod download
         go test ./... -v
         cd - > /dev/null
 
-    - name: Posts Service unit tests
+    - name: Run posts unit tests
       run: |
         cd 'src/posts'
         go mod download
         go test ./... -v
         cd - > /dev/null
   
-    - name: Statistics Service unit tests
+    - name: Run statistics unit tests
       run: |
         cd 'src/statistics'
         go mod download
