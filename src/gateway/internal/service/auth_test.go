@@ -16,7 +16,7 @@ type MockDB struct {
 
 func TestCreateUser(t *testing.T) {
 	mockDB := MockDB{users: []user.User{}}
-	a := service.CreateAuthService(&mockDB)
+	a := service.NewService(&mockDB, nil, nil, nil, service.KafkaConfig{}, nil)
 
 	for i, tc := range []user.User{
 		{
@@ -63,7 +63,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestToken(t *testing.T) {
 	mockDB := MockDB{users: []user.User{}}
-	a := service.CreateAuthService(&mockDB)
+	a := service.NewService(&mockDB, nil, nil, nil, service.KafkaConfig{}, nil)
 	users := []user.User{{
 		Username: "username1",
 		Password: "pAsSwOrD1",

@@ -23,11 +23,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PostsServerClient interface {
-	CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*PostId, error)
 	UpdatePost(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	GetPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*Post, error)
-	GetPageOfPosts(ctx context.Context, in *GetPageOfPostsRequest, opts ...grpc.CallOption) (*GetPageOfPostsResponse, error)
+	DeletePost(ctx context.Context, in *AuthoredPostId, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetPost(ctx context.Context, in *AuthoredPostId, opts ...grpc.CallOption) (*Post, error)
+	GetPageOfPosts(ctx context.Context, in *PageOfPostsRequest, opts ...grpc.CallOption) (*PageOfPosts, error)
 	DeleteUser(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -39,8 +39,8 @@ func NewPostsServerClient(cc grpc.ClientConnInterface) PostsServerClient {
 	return &postsServerClient{cc}
 }
 
-func (c *postsServerClient) CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
-	out := new(CreateResponse)
+func (c *postsServerClient) CreatePost(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*PostId, error) {
+	out := new(PostId)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/CreatePost", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (c *postsServerClient) UpdatePost(ctx context.Context, in *UpdateRequest, o
 	return out, nil
 }
 
-func (c *postsServerClient) DeletePost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *postsServerClient) DeletePost(ctx context.Context, in *AuthoredPostId, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/DeletePost", in, out, opts...)
 	if err != nil {
@@ -66,7 +66,7 @@ func (c *postsServerClient) DeletePost(ctx context.Context, in *PostId, opts ...
 	return out, nil
 }
 
-func (c *postsServerClient) GetPost(ctx context.Context, in *PostId, opts ...grpc.CallOption) (*Post, error) {
+func (c *postsServerClient) GetPost(ctx context.Context, in *AuthoredPostId, opts ...grpc.CallOption) (*Post, error) {
 	out := new(Post)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/GetPost", in, out, opts...)
 	if err != nil {
@@ -75,8 +75,8 @@ func (c *postsServerClient) GetPost(ctx context.Context, in *PostId, opts ...grp
 	return out, nil
 }
 
-func (c *postsServerClient) GetPageOfPosts(ctx context.Context, in *GetPageOfPostsRequest, opts ...grpc.CallOption) (*GetPageOfPostsResponse, error) {
-	out := new(GetPageOfPostsResponse)
+func (c *postsServerClient) GetPageOfPosts(ctx context.Context, in *PageOfPostsRequest, opts ...grpc.CallOption) (*PageOfPosts, error) {
+	out := new(PageOfPosts)
 	err := c.cc.Invoke(ctx, "/posts_proto.PostsServer/GetPageOfPosts", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -97,11 +97,11 @@ func (c *postsServerClient) DeleteUser(ctx context.Context, in *UserId, opts ...
 // All implementations must embed UnimplementedPostsServerServer
 // for forward compatibility
 type PostsServerServer interface {
-	CreatePost(context.Context, *CreateRequest) (*CreateResponse, error)
+	CreatePost(context.Context, *CreateRequest) (*PostId, error)
 	UpdatePost(context.Context, *UpdateRequest) (*emptypb.Empty, error)
-	DeletePost(context.Context, *PostId) (*emptypb.Empty, error)
-	GetPost(context.Context, *PostId) (*Post, error)
-	GetPageOfPosts(context.Context, *GetPageOfPostsRequest) (*GetPageOfPostsResponse, error)
+	DeletePost(context.Context, *AuthoredPostId) (*emptypb.Empty, error)
+	GetPost(context.Context, *AuthoredPostId) (*Post, error)
+	GetPageOfPosts(context.Context, *PageOfPostsRequest) (*PageOfPosts, error)
 	DeleteUser(context.Context, *UserId) (*emptypb.Empty, error)
 	mustEmbedUnimplementedPostsServerServer()
 }
@@ -110,19 +110,19 @@ type PostsServerServer interface {
 type UnimplementedPostsServerServer struct {
 }
 
-func (UnimplementedPostsServerServer) CreatePost(context.Context, *CreateRequest) (*CreateResponse, error) {
+func (UnimplementedPostsServerServer) CreatePost(context.Context, *CreateRequest) (*PostId, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePost not implemented")
 }
 func (UnimplementedPostsServerServer) UpdatePost(context.Context, *UpdateRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePost not implemented")
 }
-func (UnimplementedPostsServerServer) DeletePost(context.Context, *PostId) (*emptypb.Empty, error) {
+func (UnimplementedPostsServerServer) DeletePost(context.Context, *AuthoredPostId) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
 }
-func (UnimplementedPostsServerServer) GetPost(context.Context, *PostId) (*Post, error) {
+func (UnimplementedPostsServerServer) GetPost(context.Context, *AuthoredPostId) (*Post, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPost not implemented")
 }
-func (UnimplementedPostsServerServer) GetPageOfPosts(context.Context, *GetPageOfPostsRequest) (*GetPageOfPostsResponse, error) {
+func (UnimplementedPostsServerServer) GetPageOfPosts(context.Context, *PageOfPostsRequest) (*PageOfPosts, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPageOfPosts not implemented")
 }
 func (UnimplementedPostsServerServer) DeleteUser(context.Context, *UserId) (*emptypb.Empty, error) {
@@ -178,7 +178,7 @@ func _PostsServer_UpdatePost_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _PostsServer_DeletePost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PostId)
+	in := new(AuthoredPostId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -190,13 +190,13 @@ func _PostsServer_DeletePost_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/posts_proto.PostsServer/DeletePost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServerServer).DeletePost(ctx, req.(*PostId))
+		return srv.(PostsServerServer).DeletePost(ctx, req.(*AuthoredPostId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostsServer_GetPost_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PostId)
+	in := new(AuthoredPostId)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -208,13 +208,13 @@ func _PostsServer_GetPost_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/posts_proto.PostsServer/GetPost",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServerServer).GetPost(ctx, req.(*PostId))
+		return srv.(PostsServerServer).GetPost(ctx, req.(*AuthoredPostId))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PostsServer_GetPageOfPosts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPageOfPostsRequest)
+	in := new(PageOfPostsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -226,7 +226,7 @@ func _PostsServer_GetPageOfPosts_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/posts_proto.PostsServer/GetPageOfPosts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServerServer).GetPageOfPosts(ctx, req.(*GetPageOfPostsRequest))
+		return srv.(PostsServerServer).GetPageOfPosts(ctx, req.(*PageOfPostsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

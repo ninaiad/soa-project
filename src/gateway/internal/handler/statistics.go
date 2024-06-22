@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"gateway/internal/service"
-	pb "gateway/internal/service/statistics"
 
 	"github.com/gin-gonic/gin"
 )
@@ -129,7 +128,7 @@ func (h *Handler) getPostStatistics(c *gin.Context) {
 		return
 	}
 
-	s, err := h.service.GetPostStatistics(c.Request.Context(), &pb.PostId{Id: postId})
+	s, err := h.service.GetPostStatistics(postId)
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting post statistics")
@@ -161,16 +160,6 @@ func (h *Handler) getTopKPosts(c *gin.Context) {
 		return
 	}
 
-	var eventType pb.EventType
-	if eventTypeS == "like" {
-		eventType = pb.EventType_LIKE
-	} else if eventTypeS == "view" {
-		eventType = pb.EventType_VIEW
-	} else {
-		newErrorResponse(c, http.StatusBadRequest, "unknown event_type value for get top k posts")
-		return
-	}
-
 	kS, ok := c.GetQuery("k")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no k parameter for get top k posts")
@@ -183,7 +172,7 @@ func (h *Handler) getTopKPosts(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.GetTopKPosts(c.Request.Context(), &pb.TopKRequest{K: k, Event: eventType})
+	res, err := h.service.GetTopKPosts(service.EventType(eventTypeS), k)
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting post statistics")
@@ -220,16 +209,6 @@ func (h *Handler) getTopKUsers(c *gin.Context) {
 		return
 	}
 
-	var eventType pb.EventType
-	if eventTypeS == "like" {
-		eventType = pb.EventType_LIKE
-	} else if eventTypeS == "view" {
-		eventType = pb.EventType_VIEW
-	} else {
-		newErrorResponse(c, http.StatusBadRequest, "unknown event_type value for get top k users")
-		return
-	}
-
 	kS, ok := c.GetQuery("k")
 	if !ok {
 		newErrorResponse(c, http.StatusBadRequest, "no k parameter for get top k users")
@@ -242,7 +221,7 @@ func (h *Handler) getTopKUsers(c *gin.Context) {
 		return
 	}
 
-	res, err := h.service.GetTopKUsers(c.Request.Context(), &pb.TopKRequest{K: k, Event: eventType})
+	res, err := h.service.GetTopKUsers(service.EventType(eventTypeS), k)
 	if err != nil {
 		log.Println(err.Error())
 		newErrorResponse(c, http.StatusInternalServerError, "error getting users statistics")

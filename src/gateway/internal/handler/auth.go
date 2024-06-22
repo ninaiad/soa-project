@@ -4,8 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	post_pb "gateway/internal/service/posts"
-	stat_pb "gateway/internal/service/statistics"
 	"gateway/internal/user"
 
 	"github.com/gin-gonic/gin"
@@ -102,18 +100,7 @@ func (h *Handler) deleteUser(c *gin.Context) {
 		return
 	}
 
-	err = h.service.Authorization.DeleteUser(userId)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-	_, err = h.service.PostsServerClient.DeleteUser(&gin.Context{}, &post_pb.UserId{Id: userId})
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	_, err = h.service.StatisticsServiceClient.DeleteUser(&gin.Context{}, &stat_pb.UserId{Id: userId})
+	err = h.service.DeleteUser(userId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

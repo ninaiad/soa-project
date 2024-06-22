@@ -21,24 +21,24 @@ func NewPostsService(db db.PostsDatabase) *PostsService {
 }
 
 func (p *PostsService) CreatePost(
-	_ context.Context, r *pb.CreateRequest) (*pb.CreateResponse, error) {
+	_ context.Context, r *pb.CreateRequest) (*pb.PostId, error) {
 	postId, err := p.db.CreatePost(r.AuthorId, r.Text)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.CreateResponse{PostId: postId}, nil
+	return &pb.PostId{Id: postId}, nil
 }
 
 func (p *PostsService) UpdatePost(_ context.Context, r *pb.UpdateRequest) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, p.db.UpdatePost(r.AuthorId, r.PostId, r.Text)
 }
 
-func (p *PostsService) DeletePost(_ context.Context, r *pb.PostId) (*emptypb.Empty, error) {
+func (p *PostsService) DeletePost(_ context.Context, r *pb.AuthoredPostId) (*emptypb.Empty, error) {
 	return &emptypb.Empty{}, p.db.DeletePost(r.AuthorId, r.PostId)
 }
 
-func (p *PostsService) GetPost(_ context.Context, r *pb.PostId) (*pb.Post, error) {
+func (p *PostsService) GetPost(_ context.Context, r *pb.AuthoredPostId) (*pb.Post, error) {
 	post, err := p.db.GetPost(r.AuthorId, r.PostId)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (p *PostsService) GetPost(_ context.Context, r *pb.PostId) (*pb.Post, error
 }
 
 func (p *PostsService) GetPageOfPosts(
-	_ context.Context, r *pb.GetPageOfPostsRequest) (*pb.GetPageOfPostsResponse, error) {
+	_ context.Context, r *pb.PageOfPostsRequest) (*pb.PageOfPosts, error) {
 	posts, err := p.db.GetPageOfPosts(r.AuthorId, r.PageNum, r.PageSize)
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (p *PostsService) GetPageOfPosts(
 		}
 	}
 
-	return &pb.GetPageOfPostsResponse{
+	return &pb.PageOfPosts{
 		PageNum:  r.PageNum,
 		PageSize: int32(len(*posts)),
 		AuthorId: r.AuthorId,

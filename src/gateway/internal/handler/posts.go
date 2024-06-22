@@ -1,14 +1,10 @@
 package handler
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
-
-	posts_pb "gateway/internal/service/posts"
-	stat_pb "gateway/internal/service/statistics"
 
 	"github.com/gin-gonic/gin"
 )
@@ -47,16 +43,14 @@ func (h *Handler) createPost(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.service.CreatePost(
-		context.Background(),
-		&posts_pb.CreateRequest{AuthorId: userId, Text: input.Text})
+	id, err := h.service.CreatePost(userId, input.Text)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	log.Println("successful createPost request")
-	c.JSON(http.StatusOK, postIdMsg{PostId: resp.PostId})
+	c.JSON(http.StatusOK, postIdMsg{PostId: id})
 }
 
 func (h *Handler) updatePost(c *gin.Context) {
@@ -84,14 +78,7 @@ func (h *Handler) updatePost(c *gin.Context) {
 		return
 	}
 
-	_, err = h.service.UpdatePost(
-		context.Background(),
-		&posts_pb.UpdateRequest{
-			AuthorId: userId,
-			PostId:   postId,
-			Text:     input.Text,
-		})
-	if err != nil {
+	if err = h.service.UpdatePost(userId, postId, input.Text); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -119,23 +106,7 @@ func (h *Handler) deletePost(c *gin.Context) {
 		return
 	}
 
-	_, err = h.service.PostsServerClient.DeletePost(
-		context.Background(),
-		&posts_pb.PostId{
-			AuthorId: userId,
-			PostId:   postId,
-		})
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	_, err = h.service.StatisticsServiceClient.DeletePost(
-		context.Background(),
-		&stat_pb.PostId{
-			Id: postId,
-		})
-	if err != nil {
+	if err = h.service.DeletePost(userId, postId); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -175,12 +146,7 @@ func (h *Handler) getPost(c *gin.Context) {
 		return
 	}
 
-	post, err := h.service.GetPost(
-		context.Background(),
-		&posts_pb.PostId{
-			AuthorId: authorId,
-			PostId:   postId,
-		})
+	post, err := h.service.GetPost(authorId, postId)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -238,13 +204,7 @@ func (h *Handler) getPageOfPosts(c *gin.Context) {
 		return
 	}
 
-	posts, err := h.service.GetPageOfPosts(
-		context.Background(),
-		&posts_pb.GetPageOfPostsRequest{
-			AuthorId: authorId,
-			PageNum:  int32(pageNum),
-			PageSize: int32(pageSize),
-		})
+	posts, err := h.service.GetPageOfPosts(userId, int32(pageNum), int32(pageSize))
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return

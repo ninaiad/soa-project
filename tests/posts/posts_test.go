@@ -26,9 +26,9 @@ func TestPost(t *testing.T) {
 	txt := "Test post"
 	res, err := client.CreatePost(context.Background(), &pb.CreateRequest{AuthorId: 42, Text: txt})
 	assert.NoError(t, err)
-	postId := res.PostId
+	postId := res.Id
 
-	req := &pb.PostId{AuthorId: 42, PostId: postId}
+	req := &pb.AuthoredPostId{AuthorId: 42, PostId: postId}
 
 	resp, err := client.GetPost(context.Background(), req)
 	assert.NoError(t, err)
@@ -55,11 +55,11 @@ func TestPost(t *testing.T) {
 		res, err = client.CreatePost(context.Background(),
 			&pb.CreateRequest{AuthorId: 42, Text: fmt.Sprint(i)})
 		assert.NoError(t, err)
-		ids = append(ids, res.PostId)
+		ids = append(ids, res.Id)
 	}
 
 	page, err := client.GetPageOfPosts(context.Background(),
-		&pb.GetPageOfPostsRequest{AuthorId: 42, PageNum: 1, PageSize: 6})
+		&pb.PageOfPostsRequest{AuthorId: 42, PageNum: 1, PageSize: 6})
 	assert.NoError(t, err)
 
 	assert.Equal(t, page.PageNum, int32(1))
@@ -69,7 +69,7 @@ func TestPost(t *testing.T) {
 	}
 
 	for _, id := range ids {
-		_, err = client.DeletePost(context.Background(), &pb.PostId{AuthorId: 42, PostId: id})
+		_, err = client.DeletePost(context.Background(), &pb.AuthoredPostId{AuthorId: 42, PostId: id})
 		assert.NoError(t, err)
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Authorization interface {
+type Database interface {
 	CreateUser(user user.User) (int64, error)
 	DeleteUser(userId int64) error
 	GetUserId(username, password string) (int64, error)
@@ -14,12 +14,6 @@ type Authorization interface {
 	UpdateUser(userId int64, update user.UserPublic, timeUpdated string) error
 }
 
-type Database struct {
-	Authorization
-}
-
-func NewDatabase(db *sqlx.DB) *Database {
-	return &Database{
-		Authorization: NewAuthPostgres(db),
-	}
+func NewDatabase(db *sqlx.DB) Database {
+	return NewAuthPostgres(db)
 }

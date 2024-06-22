@@ -18,7 +18,7 @@ func TestPosts(t *testing.T) {
 	db := MockPostsDatabase{}
 	s := service.NewPostsService(&db)
 
-	_, err := s.GetPost(context.Background(), &pb.PostId{PostId: 13, AuthorId: 42})
+	_, err := s.GetPost(context.Background(), &pb.AuthoredPostId{PostId: 13, AuthorId: 42})
 	assert.Error(t, err)
 	_, err = s.UpdatePost(context.Background(), &pb.UpdateRequest{PostId: 13, AuthorId: 42, Text: ""})
 	assert.Error(t, err)
@@ -29,9 +29,9 @@ func TestPosts(t *testing.T) {
 	}
 	res, err := s.CreatePost(context.Background(), req)
 	assert.NoError(t, err)
-	postId := res.PostId
+	postId := res.Id
 
-	getResp, err := s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
+	getResp, err := s.GetPost(context.Background(), &pb.AuthoredPostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
 	assert.Equal(t, req.Text, getResp.Text)
 
@@ -43,13 +43,13 @@ func TestPosts(t *testing.T) {
 	_, err = s.UpdatePost(context.Background(), reqUpd)
 	assert.NoError(t, err)
 
-	getResp, err = s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
+	getResp, err = s.GetPost(context.Background(), &pb.AuthoredPostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
 	assert.Equal(t, reqUpd.Text, getResp.Text)
 
-	_, err = s.DeletePost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
+	_, err = s.DeletePost(context.Background(), &pb.AuthoredPostId{PostId: postId, AuthorId: 42})
 	assert.NoError(t, err)
-	_, err = s.GetPost(context.Background(), &pb.PostId{PostId: postId, AuthorId: 42})
+	_, err = s.GetPost(context.Background(), &pb.AuthoredPostId{PostId: postId, AuthorId: 42})
 	assert.Error(t, err)
 }
 
@@ -57,7 +57,7 @@ func TestGetPageOfPosts(t *testing.T) {
 	db := MockPostsDatabase{}
 	s := service.NewPostsService(&db)
 
-	req := &pb.GetPageOfPostsRequest{
+	req := &pb.PageOfPostsRequest{
 		AuthorId: 1,
 		PageNum:  1,
 		PageSize: 2,
