@@ -48,10 +48,10 @@ func (h *Handler) SetupRouter() *gin.Engine {
 		post.GET("/statistics", h.getPostStatistics)
 	}
 
-	posts := router.Group("/posts/statistics", h.userIdentity)
+	statistics := router.Group("/posts/statistics", h.userIdentity)
 	{
-		posts.GET("/users", h.getTopKUsers)
-		posts.GET("/posts", h.getTopKPosts)
+		statistics.GET("/users", h.getTopKUsers)
+		statistics.GET("/posts", h.getTopKPosts)
 	}
 
 	log.Println("router set up")
